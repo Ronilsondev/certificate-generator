@@ -4,22 +4,22 @@
   const DESIGN = { width: 1200, height: 848 };
   const QUALITY_PRESETS = {
     normal: { label: "Normal", scale: 1, jpegQuality: 0.92 },
-    high: { label: "High", scale: 2, jpegQuality: 0.97 },
-    xhigh: { label: "XHigh", scale: 3, jpegQuality: 1 }
+    high: { label: "Alta", scale: 2, jpegQuality: 0.97 },
+    xhigh: { label: "Muito alta", scale: 3, jpegQuality: 1 }
   };
   const sampleRecords = [
-    { name: "Avinash Kumar", course: "Discovery Camp", date: "19 September 2026", organization: "RAD@home India" },
-    { name: "Lorem Ipsum", course: "Discovery Camp", date: "19 September 2026", organization: "RAD@home India" },
-    { name: "Name Surname", course: "Discovery Camp", date: "19 September 2026", organization: "RAD@home India" }
+    { name: "Avinash Kumar", course: "Curso de formação", date: "19 de setembro de 2026", organization: "RAD@home India" },
+    { name: "Lorem Ipsum", course: "Curso de formação", date: "19 de setembro de 2026", organization: "RAD@home India" },
+    { name: "Nome Sobrenome", course: "Curso de formação", date: "19 de setembro de 2026", organization: "RAD@home India" }
   ];
 
   const sampleFields = [
     field("organization", "{{organization}}", 160, 85, 880, 22, 600, "Arial", "#9a702c", "center"),
-    field("title", "CERTIFICATE\nOF ACHIEVEMENT", 160, 170, 880, 66, 700, "Georgia", "#17223b", "center"),
-    field("intro", "PROUDLY PRESENTED TO", 250, 337, 700, 20, 600, "Arial", "#8d7245", "center"),
+    field("title", "CERTIFICADO\nDE CONCLUSÃO", 160, 170, 880, 66, 700, "Georgia", "#17223b", "center"),
+    field("intro", "CONFERIDO A", 250, 337, 700, 20, 600, "Arial", "#8d7245", "center"),
     field("name", "{{name}}", 140, 395, 920, 72, 400, "Georgia", "#b57d25", "center"),
-    field("body", "For successfully completing {{course}}", 220, 515, 760, 27, 400, "Georgia", "#2a354d", "center"),
-    field("date", "Awarded on {{date}}", 280, 576, 640, 21, 400, "Arial", "#657087", "center")
+    field("body", "Pela conclusão de {{course}}", 220, 515, 760, 27, 400, "Georgia", "#2a354d", "center"),
+    field("date", "Emitido em {{date}}", 280, 576, 640, 21, 400, "Arial", "#657087", "center")
   ];
 
   function field(id, text, x, y, width, size, weight, font, color, align, rotation = 0) {
@@ -44,7 +44,7 @@
     backgroundSourceImage: null,
     backgroundSourceSrc: null,
     backgroundCrop: null,
-    backgroundName: "Sample template",
+    backgroundName: "Modelo de exemplo",
     exportQuality: "xhigh",
     customFonts: [],
     scale: 1,
@@ -86,6 +86,7 @@
   const measureCtx = document.createElement("canvas").getContext("2d");
   const ROTATE_HANDLE_GAP = 30; // px the rotate handle needs above a layer
   let toastTimer;
+  let history = null;
 
   /** Fold any angle into [-180, 180) so the number input never runs away. */
   function normalizeRotation(value) {
@@ -166,10 +167,10 @@
 
   function photoLibraryLabel(library) {
     const names = library.sources.map((source) => source.name);
-    if (!names.length) return "no sources";
+    if (!names.length) return "nenhuma fonte";
     if (names.length === 1) return names[0];
     if (names.length === 2) return `${names[0]} + ${names[1]}`;
-    return `${names[0]} + ${names.length - 1} more`;
+    return `${names[0]} + mais ${names.length - 1}`;
   }
 
   /** Rebuild the lookup tables from every linked source. Runs after any add,
@@ -388,7 +389,7 @@
       state.photos.forEach((layer) => {
         const value = String(record[layer.column] ?? "").trim();
         if (findPhotoFile(value)) matched++;
-        else missing.push({ index, label: record.name || record[Object.keys(record)[0]] || `Record ${index + 1}`, column: layer.column, value });
+        else missing.push({ index, label: record.name || record[Object.keys(record)[0]] || `Registro ${index + 1}`, column: layer.column, value });
       });
     });
     return { total: state.records.length * state.photos.length, matched, missing };
@@ -407,8 +408,8 @@
 
   const SVG_NS = "http://www.w3.org/2000/svg";
   const SHAPE_KINDS = {
-    rectangle: "Rectangle", rounded: "Rounded rectangle", ellipse: "Ellipse",
-    triangle: "Triangle", diamond: "Diamond", polygon: "Polygon", star: "Star", line: "Line"
+    rectangle: "Retângulo", rounded: "Retângulo arredondado", ellipse: "Elipse",
+    triangle: "Triângulo", diamond: "Losango", polygon: "Polígono", star: "Estrela", line: "Linha"
   };
 
   function shapeLayer(kind = "rectangle") {
@@ -523,7 +524,7 @@
     const item = shapeLayer(els.shapeKind.value || "rectangle");
     state.shapes.push(item);
     selectField(item.id);
-    showToast(`${SHAPE_KINDS[item.kind]} added`);
+    showToast(`Forma adicionada: ${SHAPE_KINDS[item.kind]}`);
   }
 
   function drawDefaultTemplate(ctx) {
@@ -562,8 +563,8 @@
     ctx.fillStyle = "#59657b";
     ctx.font = "15px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("PROGRAM DIRECTOR", 455, 682);
-    ctx.fillText("COURSE LEAD", 745, 682);
+    ctx.fillText("DIREÇÃO DO PROGRAMA", 455, 682);
+    ctx.fillText("COORDENAÇÃO DO CURSO", 745, 682);
 
     ctx.beginPath();
     ctx.arc(600, 708, 42, 0, Math.PI * 2);
@@ -708,17 +709,18 @@
   }
 
   function renderData() {
+    history?.schedule();
     state.currentRecord = Math.max(0, Math.min(state.currentRecord, state.records.length - 1));
     const count = state.records.length;
-    els.recordCount.textContent = `${count} ${count === 1 ? "record" : "records"}`;
+    els.recordCount.textContent = `${count} ${count === 1 ? "registro" : "registros"}`;
     els.recordPosition.textContent = `${state.currentRecord + 1} / ${count}`;
     const preset = currentQualityPreset();
     const dimensions = `${DESIGN.width * preset.scale} × ${DESIGN.height * preset.scale}`;
-    els.exportSummary.textContent = `${count} ${count === 1 ? "certificate" : "certificates"} · ${preset.label} · ${dimensions}`;
+    els.exportSummary.textContent = `${count} ${count === 1 ? "certificado" : "certificados"} · ${preset.label} · ${dimensions}`;
     els.recordSelect.replaceChildren(...state.records.map((record, index) => {
       const option = document.createElement("option");
       option.value = index;
-      option.textContent = record.name || record[Object.keys(record)[0]] || `Record ${index + 1}`;
+      option.textContent = record.name || record[Object.keys(record)[0]] || `Registro ${index + 1}`;
       option.selected = index === state.currentRecord;
       return option;
     }));
@@ -744,6 +746,7 @@
   }
 
   function renderFields() {
+    history?.schedule();
     const record = state.records[state.currentRecord] || {};
     const fragment = document.createDocumentFragment();
     state.shapes.forEach((item) => {
@@ -812,7 +815,7 @@
   function resizeHandle() {
     const handle = document.createElement("span");
     handle.className = "resize-handle";
-    handle.title = "Drag to resize · Shift: preserve ratio · Ctrl: square · Ctrl Shift: preserve ratio";
+    handle.title = "Arraste para redimensionar · Shift: manter proporção · Ctrl: quadrado · Ctrl + Shift: manter proporção";
     handle.setAttribute("aria-hidden", "true");
     return handle;
   }
@@ -824,7 +827,7 @@
   function rotateHandle(item) {
     const handle = document.createElement("span");
     handle.className = item.y < ROTATE_HANDLE_GAP ? "rotate-handle below" : "rotate-handle";
-    handle.title = "Drag to rotate · hold Shift to snap to 15°";
+    handle.title = "Arraste para girar · segure Shift para ajustar em passos de 15°";
     handle.setAttribute("aria-hidden", "true");
     return handle;
   }
@@ -842,8 +845,8 @@
         button.type = "button";
         button.className = "layer-move";
         button.textContent = direction > 0 ? "↑" : "↓";
-        button.title = `Move ${label.toLowerCase()} one layer · Ctrl ${label}`;
-        button.setAttribute("aria-label", `Move layer ${label.toLowerCase()}`);
+        button.title = `Mover uma camada ${direction > 0 ? "para frente · Ctrl ↑" : "para trás · Ctrl ↓"}`;
+        button.setAttribute("aria-label", `Mover camada ${direction > 0 ? "para frente" : "para trás"}`);
         button.disabled = disabled;
         button.addEventListener("click", () => moveLayer(item.id, direction));
         row.append(button);
@@ -861,7 +864,7 @@
       const icon = document.createElement("span"); icon.className = "layer-icon"; icon.textContent = type === "image" ? "▧" : type === "photo" ? "◉" : type === "shape" ? "◇" : "T";
       const copy = document.createElement("span"); copy.className = "layer-copy";
       const title = document.createElement("strong");
-      title.textContent = type === "image" ? item.name : type === "photo" ? `{{${item.column}}}` : type === "shape" ? SHAPE_KINDS[item.kind] || "Shape" : displayFieldName(item, index);
+      title.textContent = type === "image" ? item.name : type === "photo" ? `{{${item.column}}}` : type === "shape" ? SHAPE_KINDS[item.kind] || "Forma" : displayFieldName(item, index);
       const base = type === "text" ? item.text.replace(/\n/g, " ") : `${Math.round(item.width)} × ${Math.round(item.height)} px`;
       const angle = normalizeRotation(item.rotation);
       const subtitle = document.createElement("span"); subtitle.textContent = angle ? `${base} · ${angle}°` : base;
@@ -875,16 +878,16 @@
 
   function displayFieldName(item, index) {
     const match = item.text.match(/{{\s*([^}]+)\s*}}/);
-    if (match) return match[1].replace(/\b\w/g, (char) => char.toUpperCase());
+    if (match) return ({ name: "Nome", course: "Curso", date: "Data", organization: "Organização" })[match[1].trim()] || match[1].replace(/\b\w/g, (char) => char.toUpperCase());
     const plain = item.text.replace(/\n/g, " ").trim();
-    return plain.slice(0, 28) || `Text ${index + 1}`;
+    return plain.slice(0, 28) || `Texto ${index + 1}`;
   }
 
   function populateForm() {
     if (state.selectedIds.length > 1) {
       [els.fieldForm, els.imageForm, els.photoForm, els.shapeForm].forEach((form) => { form.hidden = true; });
       els.deleteField.disabled = els.duplicateField.disabled = false;
-      els.selectedLayerLabel.textContent = `${state.selectedIds.length} selected`;
+      els.selectedLayerLabel.textContent = `${state.selectedIds.length} camadas selecionadas`;
       return;
     }
     const textItem = getSelectedField();
@@ -897,8 +900,8 @@
     els.shapeForm.toggleAttribute("hidden", !shapeItem);
     els.deleteField.disabled = !textItem && !imageItem && !photoItem && !shapeItem;
     els.duplicateField.disabled = els.deleteField.disabled;
-    els.selectedLayerLabel.textContent = imageItem ? "Selected picture" : photoItem ? "Selected dynamic picture"
-      : shapeItem ? "Selected shape" : textItem ? "Selected text" : "No layer selected";
+    els.selectedLayerLabel.textContent = imageItem ? "Imagem selecionada" : photoItem ? "Imagem dinâmica selecionada"
+      : shapeItem ? "Forma selecionada" : textItem ? "Texto selecionado" : "Nenhuma camada selecionada";
     if (shapeItem) {
       els.shapeKind.value = shapeItem.kind;
       els.shapeSides.value = shapeSides(shapeItem);
@@ -973,7 +976,7 @@
 
   function insertPlaceholder(key) {
     const item = getSelectedField();
-    if (!item) { showToast("Select a text field first"); return; }
+    if (!item) { showToast("Selecione um texto primeiro"); return; }
     const token = `{{${key}}}`;
     const start = els.fieldText.selectionStart ?? item.text.length;
     const end = els.fieldText.selectionEnd ?? start;
@@ -1168,6 +1171,7 @@
       renderFields(); renderFieldList(); populateForm();
     }
     state.interaction = null;
+    history?.schedule();
     if (els.stage.hasPointerCapture(event.pointerId)) els.stage.releasePointerCapture(event.pointerId);
   }
 
@@ -1282,6 +1286,11 @@
     }
     if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
     const key = event.key.toLowerCase();
+    if (!typing && (key === "z" || key === "y")) {
+      event.preventDefault();
+      if (key === "y" || event.shiftKey) history.redo(); else history.undo();
+      return;
+    }
     if (!typing && getSelectedItem() && ["ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       moveLayer(state.selectedField, event.key === "ArrowUp" ? 1 : -1, event.shiftKey);
@@ -1306,65 +1315,73 @@
     event.preventDefault(); renderFields(); populateForm();
   }
 
-  function parseCsv(text) {
-    const rows = [];
-    let row = [], value = "", quoted = false;
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      if (char === '"') {
-        if (quoted && text[i + 1] === '"') { value += '"'; i++; }
-        else quoted = !quoted;
-      } else if (char === "," && !quoted) { row.push(value.trim()); value = ""; }
-      else if ((char === "\n" || char === "\r") && !quoted) {
-        if (char === "\r" && text[i + 1] === "\n") i++;
-        row.push(value.trim()); value = "";
-        if (row.some((cell) => cell !== "")) rows.push(row);
-        row = [];
-      } else value += char;
+  const { parseCsv, parseTxt } = window.CertificateData;
+
+  function updateDataValidation() {
+    const issues = window.CertificateData.inspect(state.records, state.fields);
+    const panel = $("dataValidation");
+    panel.dataset.state = issues.length ? "invalid" : "valid";
+    $("validationSummary").textContent = issues.length
+      ? "Corrija os campos abaixo antes de exportar os registros afetados."
+      : `${state.records.length} registro(s) pronto(s) para gerar certificados.`;
+    $("validationIssues").replaceChildren(...issues.slice(0, 20).map(({ message }) => {
+      const li = document.createElement("li"); li.textContent = message; return li;
+    }));
+    if (issues.length > 20) {
+      const li = document.createElement("li"); li.textContent = `E mais ${issues.length - 20} problemas.`;
+      $("validationIssues").append(li);
     }
-    row.push(value.trim()); if (row.some((cell) => cell !== "")) rows.push(row);
-    if (rows.length < 2) throw new Error("CSV needs a header row and at least one data row.");
-    const headers = rows[0].map((header, index) => header || `column_${index + 1}`);
-    return rows.slice(1).map((cells) => Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])));
   }
 
-  function parseTxt(text) {
-    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    if (!lines.length) throw new Error("The text file does not contain any names.");
-    return lines.map((name) => ({ name }));
+  function validateExport(all = false) {
+    const records = all ? state.records : [state.records[state.currentRecord]];
+    const issues = window.CertificateData.inspect(records, state.fields, all ? 0 : state.currentRecord);
+    if (!issues.length) return true;
+    updateDataValidation();
+    if ($("dataPanel").hidden) $("toggleDataPanel").click();
+    $("dataValidation").focus();
+    showToast("Há dados ausentes no certificado. Confira a validação no painel Dados.", true);
+    return false;
   }
 
   async function handleDataUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     try {
+      if (!/\.(csv|txt)$/i.test(file.name)) throw new Error("Escolha um arquivo CSV ou TXT.");
+      if (file.size > 20 * 1024 * 1024) throw new Error("O arquivo de dados deve ter no máximo 20 MB.");
       const text = (await file.text()).replace(/^\uFEFF/, "");
       const records = file.name.toLowerCase().endsWith(".csv") ? parseCsv(text) : parseTxt(text);
-      if (!records.length) throw new Error("No records were found.");
+      window.CertificateData.validateRecords(records);
+      $("dataImportError").hidden = true;
       state.records = records; state.currentRecord = 0;
       renderData(); renderFields(); updatePhotoStatus();
-      showToast(`${records.length} records loaded from ${file.name}`);
+      showToast(`${records.length} registros importados de ${file.name}`);
       const detected = detectPhotoColumns();
       if (detected.length && !state.photos.length) {
-        setTimeout(() => showToast(`"${detected[0]}" looks like image files — add a dynamic picture with + Dynamic`), 2800);
+        setTimeout(() => showToast(`"${detected[0]}" parece conter nomes de imagens — use + Dinâmica`), 2800);
       }
-    } catch (error) { showToast(error.message, true); }
+    } catch (error) {
+      $("dataImportError").textContent = `Importação recusada: ${error.message} Os dados anteriores foram mantidos.`;
+      $("dataImportError").hidden = false;
+      showToast(error.message, true);
+    }
     event.target.value = "";
   }
 
   async function handleBackgroundUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { showToast("Choose a PNG, JPEG, or WebP image.", true); return; }
+    if (!file.type.startsWith("image/")) { showToast("Escolha uma imagem PNG, JPEG ou WebP.", true); return; }
     try {
       const src = await readFileAsDataUrl(file);
       const image = await loadImage(src);
-      if (image.naturalWidth * image.naturalHeight > 50000000) throw new Error("Background images must be smaller than 50 megapixels.");
+      if (image.naturalWidth * image.naturalHeight > 50000000) throw new Error("O fundo deve ter menos de 50 megapixels.");
       state.backgroundImage = image; state.backgroundSourceImage = image; state.backgroundSourceSrc = src; state.backgroundCrop = null; state.backgroundName = file.name; state.blankBackground = false;
       setDesignSize(image.naturalWidth, image.naturalHeight);
       renderAll();
-      showToast(`Canvas resized to ${image.naturalWidth} × ${image.naturalHeight}`);
-    } catch (error) { console.error("Background upload failed", error); showToast(error.message || "That background image could not be opened.", true); }
+      showToast(`Área redimensionada para ${image.naturalWidth} × ${image.naturalHeight}`);
+    } catch (error) { console.error("Background upload failed", error); showToast(error.message || "Não foi possível abrir a imagem de fundo.", true); }
     event.target.value = "";
   }
 
@@ -1381,14 +1398,14 @@
       const height = Math.max(40, image.naturalHeight * scale);
       const item = {
         id: `image-${Date.now()}-${state.images.length}`,
-        name: file.name.replace(/\.[^.]+$/, "") || `Picture ${state.images.length + 1}`,
+        name: file.name.replace(/\.[^.]+$/, "") || `Imagem ${state.images.length + 1}`,
         src, image, sourceSrc: src, sourceImage: image, x: (DESIGN.width - width) / 2, y: (DESIGN.height - height) / 2,
         width, height, opacity: 1, rotation: 0, crop: null
       };
       state.images.push(item);
       selectField(item.id);
-      showToast(`${file.name} added as a picture layer`);
-    } catch (error) { console.error("Picture upload failed", error); showToast("That picture could not be opened.", true); }
+      showToast(`${file.name} adicionada como camada de imagem`);
+    } catch (error) { console.error("Picture upload failed", error); showToast("Não foi possível abrir a imagem.", true); }
     event.target.value = "";
   }
 
@@ -1410,8 +1427,8 @@
       item.sourceImage = image;
       item.crop = null;
       renderFields(); renderFieldList(); populateForm();
-      showToast("Picture layer replaced");
-    } catch (error) { console.error("Picture replacement failed", error); showToast("That picture could not be opened.", true); }
+      showToast("Imagem substituída");
+    } catch (error) { console.error("Picture replacement failed", error); showToast("Não foi possível abrir a imagem.", true); }
     event.target.value = "";
   }
 
@@ -1420,17 +1437,17 @@
     if (!file) return;
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!["ttf", "otf", "woff", "woff2"].includes(extension)) {
-      setFontStatus("Choose a TTF, OTF, WOFF or WOFF2 font.", "error");
+      setFontStatus("Escolha uma fonte TTF, OTF, WOFF ou WOFF2.", "error");
       event.target.value = "";
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setFontStatus("That font is larger than the 10 MB limit.", "error");
+      setFontStatus("Essa fonte ultrapassa o limite de 10 MB.", "error");
       event.target.value = "";
       return;
     }
     try {
-      const displayName = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || "Custom font";
+      const displayName = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || "Fonte personalizada";
       const baseFamily = `Certificate generator ${displayName}`;
       let family = baseFamily;
       let suffix = 2;
@@ -1442,15 +1459,16 @@
       const option = document.createElement("option");
       option.value = family;
       option.dataset.customFont = "1";
-      option.textContent = `${displayName} · custom`;
+      option.textContent = `${displayName} · personalizada`;
       els.fieldFont.append(option);
       els.fieldFont.value = family;
       updateSelected("font", family);
-      setFontStatus(`${displayName} loaded for this session`, "loaded");
-      showToast(`${displayName} is ready to use`);
+      history?.schedule();
+      setFontStatus(`${displayName} carregada para esta sessão`, "loaded");
+      showToast(`${displayName} pronta para uso`);
     } catch (error) {
       console.error(error);
-      setFontStatus("This font could not be loaded. It may be damaged or unsupported.", "error");
+      setFontStatus("Não foi possível carregar a fonte. Ela pode estar danificada ou ser incompatível.", "error");
     }
     event.target.value = "";
   }
@@ -1488,7 +1506,7 @@
   function openCropEditor(kind) {
     const item = kind === "image" ? getSelectedImage() : null;
     const image = kind === "background" ? state.backgroundSourceImage : item?.sourceImage;
-    if (!image) { showToast(`Upload a ${kind === "background" ? "background" : "picture"} first.`, true); return; }
+    if (!image) { showToast(`Importe ${kind === "background" ? "um fundo" : "uma imagem"} primeiro.`, true); return; }
     const savedCrop = kind === "background" ? state.backgroundCrop : item.crop;
     state.cropSession = {
       kind,
@@ -1498,7 +1516,7 @@
       drag: null,
       view: null
     };
-    els.cropDialogTitle.textContent = kind === "background" ? "Crop background" : `Crop ${item.name}`;
+    els.cropDialogTitle.textContent = kind === "background" ? "Recortar fundo" : `Recortar ${item.name}`;
     els.cropAspect.value = "free";
     syncCropInputs();
     els.cropDialog.showModal();
@@ -1650,7 +1668,7 @@
       state.backgroundCrop = crop;
       setDesignSize(width, height);
       renderAll();
-      showToast(`Background cropped · canvas is now ${width} × ${height}`);
+      showToast(`Fundo recortado · área de ${width} × ${height}`);
     } else {
       const item = state.images.find((candidate) => candidate.id === session.targetId);
       if (!item) return;
@@ -1660,7 +1678,7 @@
       item.x = clamp(item.x, 0, Math.max(0, DESIGN.width - item.width));
       item.y = clamp(item.y, 0, Math.max(0, DESIGN.height - item.height));
       renderFields(); renderFieldList(); populateForm();
-      showToast(`Picture cropped to ${width} × ${height}`);
+      showToast(`Imagem recortada para ${width} × ${height}`);
     }
     els.cropDialog.close(); state.cropSession = null;
   }
@@ -1679,12 +1697,12 @@
   }
 
   function updatePhotoMatchNote(layer) {
-    if (!state.photoLibrary) { els.photoMatchNote.textContent = "Link an image folder to resolve this column."; return; }
+    if (!state.photoLibrary) { els.photoMatchNote.textContent = "Vincule uma pasta de imagens para preencher esta coluna."; return; }
     const record = state.records[state.currentRecord] || {};
     const value = String(record[layer.column] ?? "").trim();
-    if (!value) { els.photoMatchNote.textContent = `This record has no value in "${layer.column}".`; return; }
+    if (!value) { els.photoMatchNote.textContent = `Este registro não tem valor em "${layer.column}".`; return; }
     const file = findPhotoFile(value);
-    els.photoMatchNote.textContent = file ? `Matched ${file.webkitRelativePath || file.name}` : `No file matches "${value}".`;
+    els.photoMatchNote.textContent = file ? `Encontrada: ${file.webkitRelativePath || file.name}` : `Nenhum arquivo corresponde a "${value}".`;
   }
 
   function updatePhotoStatus() {
@@ -1692,35 +1710,35 @@
     els.photoReport.toggleAttribute("hidden", !state.photos.length);
     els.photoUnlink.toggleAttribute("hidden", !library);
     els.photoRefresh.toggleAttribute("hidden", !library);
-    els.photoFolderButton.textContent = library ? "Link another folder" : "Link image folder";
-    els.photoFilesLabel.textContent = library ? "or add more files" : "or pick files";
+    els.photoFolderButton.textContent = library ? "Vincular outra pasta" : "Vincular pasta de imagens";
+    els.photoFilesLabel.textContent = library ? "ou adicionar mais arquivos" : "ou escolher arquivos";
     if (library) {
       const rescannable = library.sources.some((source) => source.handle);
       els.photoRefresh.title = rescannable
-        ? "Re-scan the linked folders for newly added images"
-        : "This browser cannot re-scan a folder on its own · pick the folder again";
+        ? "Buscar novas imagens nas pastas vinculadas"
+        : "Este navegador não pode reler a pasta sozinho · selecione a pasta novamente";
     }
-    if (!library) { els.photoStatus.textContent = "No image folder linked"; return; }
-    const skipped = library.skipped ? ` · ${library.skipped} non-image skipped` : "";
-    const sources = library.sources.length > 1 ? ` (${library.sources.length} sources)` : "";
-    let summary = `${library.files.length} image${library.files.length === 1 ? "" : "s"} from ${library.name}${sources}${skipped}`;
+    if (!library) { els.photoStatus.textContent = "Nenhuma pasta de imagens vinculada"; return; }
+    const skipped = library.skipped ? ` · ${library.skipped} arquivos ignorados (não são imagens)` : "";
+    const sources = library.sources.length > 1 ? ` (${library.sources.length} fontes)` : "";
+    let summary = `${library.files.length} imagens de ${library.name}${sources}${skipped}`;
     if (state.photos.length) {
       const report = photoMatchReport();
-      summary += ` · ${report.matched} of ${report.total} matched`;
+      summary += ` · ${report.matched} de ${report.total} encontradas`;
     }
     els.photoStatus.textContent = summary;
   }
 
   async function linkPhotoFiles(entry) {
     const result = await addPhotoSource(entry);
-    if (!result) { showToast("No PNG, JPEG, or WebP images were found there.", true); return; }
+    if (!result) { showToast("Nenhuma imagem PNG, JPEG ou WebP foi encontrada.", true); return; }
     renderAll();
     const library = state.photoLibrary;
     const report = state.photos.length ? photoMatchReport() : null;
     const headline = result.replaced
-      ? `${result.added} new image${result.added === 1 ? "" : "s"} from ${result.source.name} · ${library.files.length} linked`
-      : `${result.added} image${result.added === 1 ? "" : "s"} linked from ${result.source.name} · ${library.files.length} total`;
-    if (report && report.missing.length) showToast(`${headline} · ${report.missing.length} records still unmatched`, true);
+      ? `${result.added} novas imagens de ${result.source.name} · ${library.files.length} vinculadas`
+      : `${result.added} imagens vinculadas de ${result.source.name} · ${library.files.length} no total`;
+    if (report && report.missing.length) showToast(`${headline} · ${report.missing.length} registros sem imagem correspondente`, true);
     else showToast(headline);
   }
 
@@ -1728,10 +1746,10 @@
     const files = event.target.files;
     if (files && files.length) {
       const path = (files[0].webkitRelativePath || "").split("/");
-      const name = isFolder ? (path.length > 1 ? path[0] : "selected folder") : "picked files";
+      const name = isFolder ? (path.length > 1 ? path[0] : "pasta selecionada") : "arquivos selecionados";
       linkPhotoFiles({ kind: isFolder ? "folder" : "files", name, handle: null, fileList: files });
     } else if (isFolder) {
-      showToast("That folder is empty, or the browser blocked reading it.", true);
+      showToast("A pasta está vazia ou o navegador bloqueou a leitura.", true);
     }
     event.target.value = "";
   }
@@ -1775,7 +1793,7 @@
         try {
           await linkPhotoFiles({ kind: "folder", name: handle.name, handle, fileList: await readDirectoryFiles(handle) });
         } catch (error) {
-          showToast("That folder could not be read.", true);
+          showToast("Não foi possível ler a pasta.", true);
         } finally { setBusy(false); }
         return;
       }
@@ -1789,7 +1807,7 @@
     if (!library) return;
     const rescannable = library.sources.filter((source) => source.handle);
     if (!rescannable.length) {
-      showToast("This browser cannot re-scan a folder · pick it again to refresh", true);
+      showToast("Selecione a pasta novamente para atualizar as imagens neste navegador", true);
       pickPhotoFolder();
       return;
     }
@@ -1815,44 +1833,44 @@
     photoCache.clear();
     renderAll();
     const skippedNote = library.sources.length > rescannable.length
-      ? ` · ${library.sources.length - rescannable.length} source${library.sources.length - rescannable.length === 1 ? "" : "s"} cannot be re-scanned`
+      ? ` · ${library.sources.length - rescannable.length} fontes precisam ser selecionadas novamente`
       : "";
-    if (failed) showToast(`${failed} folder${failed === 1 ? "" : "s"} could not be read · ${library.files.length} images linked`, true);
-    else if (added || removed) showToast(`Refreshed · ${added} added, ${removed} gone · ${library.files.length} images linked${skippedNote}`);
-    else showToast(`No changes found · ${library.files.length} images linked${skippedNote}`);
+    if (failed) showToast(`${failed} pastas não puderam ser lidas · ${library.files.length} imagens vinculadas`, true);
+    else if (added || removed) showToast(`Atualizado · ${added} adicionadas, ${removed} removidas · ${library.files.length} imagens vinculadas${skippedNote}`);
+    else showToast(`Nenhuma alteração · ${library.files.length} imagens vinculadas${skippedNote}`);
   }
 
   function unlinkPhotoLibrary() {
     releasePhotoLibrary();
     state.photoLibrary = null;
     renderAll();
-    showToast("All image sources unlinked");
+    showToast("Todas as fontes de imagens foram desvinculadas");
   }
 
   function addPhotoLayer() {
     const keys = uniqueKeys();
-    if (!keys.length) { showToast("Load recipient data first.", true); return; }
+    if (!keys.length) { showToast("Importe os dados dos participantes primeiro.", true); return; }
     const column = detectPhotoColumns()[0] || keys[0];
     const layer = photoLayer(column);
     state.photos.push(layer);
     selectField(layer.id);
-    if (!state.photoLibrary) showToast(`Dynamic picture added for {{${column}}} · link an image folder next`);
-    else showToast(`Dynamic picture added for {{${column}}}`);
+    if (!state.photoLibrary) showToast(`Imagem dinâmica adicionada para {{${column}}} · vincule uma pasta de imagens`);
+    else showToast(`Imagem dinâmica adicionada para {{${column}}}`);
   }
 
   /** The report people should read before exporting 500 certificates. */
   function openPhotoReport(allowProceed = false) {
     const report = photoMatchReport();
     els.reportSummary.textContent = state.photoLibrary
-      ? `${report.matched} of ${report.total} matched · ${report.missing.length} missing`
-      : `No image folder is linked, so all ${report.total} dynamic pictures are empty.`;
+      ? `${report.matched} de ${report.total} encontradas · ${report.missing.length} ausentes`
+      : `Nenhuma pasta vinculada. As ${report.total} imagens dinâmicas estão vazias.`;
     const rows = report.missing.slice(0, 200).map((entry) => {
       const row = document.createElement("tr");
       const heading = document.createElement("th");
       const cell = document.createElement("td");
       heading.scope = "row";
       heading.textContent = `${entry.index + 1}. ${entry.label}`;
-      cell.textContent = entry.value ? `${entry.column}: ${entry.value}` : `${entry.column} is empty`;
+      cell.textContent = entry.value ? `${entry.column}: ${entry.value}` : `${entry.column} está vazia`;
       row.append(heading, cell);
       return row;
     });
@@ -1860,7 +1878,7 @@
       const row = document.createElement("tr");
       const cell = document.createElement("td");
       cell.colSpan = 2;
-      cell.textContent = `… and ${report.missing.length - 200} more`;
+      cell.textContent = `… e mais ${report.missing.length - 200}`;
       row.append(cell);
       rows.push(row);
     }
@@ -1875,7 +1893,7 @@
 
   function applyBlankTemplate() {
     state.backgroundImage = null; state.backgroundSourceImage = null; state.backgroundSourceSrc = null; state.backgroundCrop = null;
-    state.backgroundName = "Blank canvas";
+    state.backgroundName = "Área em branco";
     state.blankBackground = true;
     state.fields = []; state.images = []; state.photos = []; state.shapes = [];
     state.layerOrder = [];
@@ -1883,21 +1901,21 @@
     state.selectedIds = [];
     state.interaction = null; state.cropSession = null;
     renderAll();
-    showToast(`Blank ${DESIGN.width} × ${DESIGN.height} canvas ready`);
+    showToast(`Área em branco de ${DESIGN.width} × ${DESIGN.height} pronta`);
   }
 
   function addField() {
     const id = `text-${Date.now()}`;
-    state.fields.push(field(id, "New text", 300, 300, 600, 32, 400, "Georgia", "#17223b", "center"));
+    state.fields.push(field(id, "Novo texto", 300, 300, 600, 32, 400, "Georgia", "#17223b", "center"));
     selectField(id); els.fieldText.focus(); els.fieldText.select();
   }
 
   /** Which list a layer lives in, and what to call it. */
   const LAYER_KINDS = [
-    { kind: "shape", label: "Shape", list: () => state.shapes },
-    { kind: "photo", label: "Dynamic picture", list: () => state.photos },
-    { kind: "image", label: "Picture", list: () => state.images },
-    { kind: "text", label: "Text", list: () => state.fields }
+    { kind: "shape", label: "Forma", list: () => state.shapes },
+    { kind: "photo", label: "Imagem dinâmica", list: () => state.photos },
+    { kind: "image", label: "Imagem", list: () => state.images },
+    { kind: "text", label: "Texto", list: () => state.fields }
   ];
 
   function layerBucket(id) {
@@ -1916,13 +1934,13 @@
 
   function copySelectedLayer() {
     const entries = selectionCopies();
-    if (!entries.length) { showToast("Select a layer to copy", true); return; }
+    if (!entries.length) { showToast("Selecione uma camada para copiar", true); return; }
     state.clipboard = entries;
-    showToast(`${entries.length} copied`);
+    showToast(`${entries.length} camadas copiadas`);
   }
 
   function pasteLayer() {
-    if (!state.clipboard?.length) { showToast("Nothing copied yet", true); return; }
+    if (!state.clipboard?.length) { showToast("Nenhuma camada copiada", true); return; }
     pasteCopies(state.clipboard);
   }
 
@@ -1949,7 +1967,7 @@
     setSelection(copies.map((item) => item.id));
     renderFields(); renderFieldList(); populateForm();
     els.stage.focus({ preventScroll: true });
-    showToast(`${copies.length} pasted`);
+    showToast(`${copies.length} camadas coladas`);
   }
 
   function deleteField() {
@@ -1962,7 +1980,7 @@
     setSelection([]);
     renderFields(); renderFieldList(); populateForm();
     els.stage.focus({ preventScroll: true });
-    showToast(`${ids.size} deleted`);
+    showToast(`${ids.size} camadas excluídas`);
   }
 
   function renderCertificate(record, scale = 1, photos = null) {
@@ -2051,7 +2069,7 @@
   }
 
   function canvasToBlob(canvas, type = "image/png", quality) {
-    return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not render image")), type, quality));
+    return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Não foi possível gerar a imagem")), type, quality));
   }
 
   function safeFilename(record, index) {
@@ -2067,23 +2085,25 @@
   }
 
   async function downloadCurrentPng() {
+    if (!validateExport()) return;
     await ensureFontsReady();
     const record = state.records[state.currentRecord];
     const preset = currentQualityPreset();
     const photos = await resolvePhotos(record, preset.scale);
     const blob = await canvasToBlob(renderCertificate(record, preset.scale, photos));
     downloadBlob(blob, `${safeFilename(record, state.currentRecord)}.png`);
-    showToast("PNG downloaded");
+    showToast("PNG baixado");
   }
 
   async function downloadCurrentPdf() {
+    if (!validateExport()) return;
     await ensureFontsReady();
     const record = state.records[state.currentRecord];
     const preset = currentQualityPreset();
     const photos = await resolvePhotos(record, preset.scale);
     const bytes = await makePdf(renderCertificate(record, preset.scale, photos), preset.jpegQuality);
     downloadBlob(new Blob([bytes], { type: "application/pdf" }), `${safeFilename(record, state.currentRecord)}.pdf`);
-    showToast("PDF downloaded");
+    showToast("PDF baixado");
   }
 
   async function makePdf(canvas, jpegQuality = 1) {
@@ -2118,9 +2138,10 @@
   }
 
   async function downloadBatch() {
+    if (!validateExport(true)) return;
     if (state.photos.length) {
       const report = photoMatchReport();
-      if (report.missing.length && !(await openPhotoReport(true))) { showToast("Batch export cancelled"); return; }
+      if (report.missing.length && !(await openPhotoReport(true))) { showToast("Exportação em lote cancelada"); return; }
     }
     setBusy(true);
     try {
@@ -2132,19 +2153,19 @@
         const photos = await resolvePhotos(record, preset.scale);
         const canvas = renderCertificate(record, preset.scale, photos);
         const base = `${String(i + 1).padStart(3, "0")}-${safeFilename(record, i)}`;
-        setProgress(i, state.records.length, `Rendering ${base}`);
+        setProgress(i, state.records.length, `Gerando ${base}`);
         const png = new Uint8Array(await (await canvasToBlob(canvas)).arrayBuffer());
         const pdf = await makePdf(canvas, preset.jpegQuality);
         files.push({ name: `png/${base}.png`, data: png }, { name: `pdf/${base}.pdf`, data: pdf });
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
-      els.progressTitle.textContent = "Packaging your downloads";
-      els.progressText.textContent = "Creating ZIP file…";
+      els.progressTitle.textContent = "Preparando seus arquivos";
+      els.progressText.textContent = "Criando arquivo ZIP…";
       els.progressBar.style.width = "100%";
       const zip = makeZip(files);
       downloadBlob(new Blob([zip], { type: "application/zip" }), "certificates.zip");
-      showToast(`${state.records.length} certificates downloaded`);
-    } catch (error) { console.error(error); showToast("The batch export could not be completed.", true); }
+      showToast(`${state.records.length} certificados baixados`);
+    } catch (error) { console.error(error); showToast("Não foi possível concluir a exportação em lote.", true); }
     finally { setBusy(false); }
   }
 
@@ -2160,11 +2181,11 @@
   function setBusy(busy) {
     els.progress.hidden = !busy;
     [els.downloadPng, els.downloadPdf, els.batch].forEach((button) => button.disabled = busy);
-    if (busy) { els.progressTitle.textContent = "Preparing certificates"; els.progressBar.style.width = "0"; }
+    if (busy) { els.progressTitle.textContent = "Preparando certificados"; els.progressBar.style.width = "0"; }
   }
 
   function setProgress(index, total, label) {
-    els.progressText.textContent = `${index + 1} of ${total} · ${label}`;
+    els.progressText.textContent = `${index + 1} de ${total} · ${label}`;
     els.progressBar.style.width = `${(index / total) * 100}%`;
   }
 
@@ -2222,13 +2243,13 @@
   }
 
   function resetApp() {
-    state.backgroundImage = null; state.backgroundSourceImage = null; state.backgroundSourceSrc = null; state.backgroundCrop = null; state.backgroundName = "Sample template";
+    state.backgroundImage = null; state.backgroundSourceImage = null; state.backgroundSourceSrc = null; state.backgroundCrop = null; state.backgroundName = "Modelo de exemplo";
     state.blankBackground = false;
     state.layerOrder = [];
     setDesignSize(1200, 848);
     state.records = clone(sampleRecords); state.fields = clone(sampleFields); state.images = []; state.photos = []; state.shapes = []; state.currentRecord = 0; state.selectedField = "name";
     state.selectedIds = ["name"];
-    renderAll(); showToast("Sample certificate restored");
+    renderAll(); showToast("Certificado de exemplo restaurado");
   }
 
   els.dataUpload.addEventListener("change", handleDataUpload);
@@ -2242,9 +2263,9 @@
     state.exportQuality = event.target.value;
     const preset = currentQualityPreset();
     renderData();
-    showToast(`${preset.label} export selected · ${preset.scale}× resolution`);
+    showToast(`Qualidade ${preset.label} selecionada · resolução ${preset.scale}×`);
   });
-  els.clearBackground.addEventListener("click", () => { state.backgroundImage = null; state.backgroundSourceImage = null; state.backgroundSourceSrc = null; state.backgroundCrop = null; state.backgroundName = "Sample template"; state.blankBackground = false; setDesignSize(1200, 848); renderAll(); showToast("Sample template restored"); });
+  els.clearBackground.addEventListener("click", () => { state.backgroundImage = null; state.backgroundSourceImage = null; state.backgroundSourceSrc = null; state.backgroundCrop = null; state.backgroundName = "Modelo de exemplo"; state.blankBackground = false; setDesignSize(1200, 848); renderAll(); showToast("Modelo de exemplo restaurado"); });
   els.blankTemplate.addEventListener("click", applyBlankTemplate);
   els.addPhoto.addEventListener("click", addPhotoLayer);
   els.addShape.addEventListener("click", addShapeLayer);
@@ -2272,7 +2293,7 @@
   els.recordSelect.addEventListener("change", () => { state.currentRecord = Number(els.recordSelect.value); renderData(); renderFields(); });
   els.previousRecord.addEventListener("click", () => { state.currentRecord = (state.currentRecord - 1 + state.records.length) % state.records.length; renderData(); renderFields(); });
   els.nextRecord.addEventListener("click", () => { state.currentRecord = (state.currentRecord + 1) % state.records.length; renderData(); renderFields(); });
-  els.sampleData.addEventListener("click", () => { state.records = clone(sampleRecords); state.currentRecord = 0; renderData(); renderFields(); showToast("Sample data restored"); });
+  els.sampleData.addEventListener("click", () => { state.records = clone(sampleRecords); state.currentRecord = 0; renderData(); renderFields(); showToast("Dados de exemplo restaurados"); });
   els.addField.addEventListener("click", addField);
   els.deleteField.addEventListener("click", deleteField);
   els.fieldText.addEventListener("input", (event) => updateSelected("text", event.target.value));
@@ -2350,15 +2371,15 @@
   els.stage.addEventListener("pointerup", endFieldInteraction);
   els.stage.addEventListener("pointercancel", endFieldInteraction);
   for (const [buttonId, panelId, className, label] of [
-    ["toggleDataPanel", "dataPanel", "data-hidden", "Data"],
-    ["toggleLayersPanel", "layersPanel", "layers-hidden", "Layers"]
+    ["toggleDataPanel", "dataPanel", "data-hidden", "dados"],
+    ["toggleLayersPanel", "layersPanel", "layers-hidden", "camadas"]
   ]) {
     $(buttonId).addEventListener("click", () => {
       const hidden = !$(panelId).hidden;
       $(panelId).hidden = hidden;
       document.querySelector(".studio").classList.toggle(className, hidden);
       $(buttonId).setAttribute("aria-expanded", String(!hidden));
-      $(buttonId).textContent = `${hidden ? "Show" : "Hide"} ${label}`;
+      $(buttonId).textContent = `${hidden ? "Mostrar" : "Ocultar"} ${label}`;
       requestAnimationFrame(fitStage);
     });
   }
@@ -2369,22 +2390,51 @@
   });
   [[els.cropX, "x"], [els.cropY, "y"], [els.cropWidth, "width"], [els.cropHeight, "height"]].forEach(([input, key]) => input.addEventListener("change", () => updateCropFromInputs(key)));
   els.cropReset.addEventListener("click", () => { if (!state.cropSession) return; state.cropSession.crop = fullImageCrop(state.cropSession.image); els.cropAspect.value = "free"; syncCropInputs(); drawCropEditor(); });
-  els.cropApply.addEventListener("click", () => applyCrop().catch((error) => { console.error("Crop failed", error); showToast("The crop could not be applied.", true); }));
+  els.cropApply.addEventListener("click", () => applyCrop().catch((error) => { console.error("Crop failed", error); showToast("Não foi possível aplicar o recorte.", true); }));
   els.cropCanvas.addEventListener("pointerdown", startCropInteraction);
   els.cropCanvas.addEventListener("pointermove", moveCropInteraction);
   els.cropCanvas.addEventListener("pointerup", endCropInteraction);
   els.cropCanvas.addEventListener("pointercancel", endCropInteraction);
   els.cropDialog.addEventListener("close", () => { state.cropSession = null; });
   els.reset.addEventListener("click", resetApp);
-  els.downloadPng.addEventListener("click", () => downloadCurrentPng().catch(() => showToast("PNG export failed.", true)));
-  els.downloadPdf.addEventListener("click", () => downloadCurrentPdf().catch(() => showToast("PDF export failed.", true)));
+  els.downloadPng.addEventListener("click", () => downloadCurrentPng().catch(() => showToast("Falha ao exportar PNG.", true)));
+  els.downloadPdf.addEventListener("click", () => downloadCurrentPdf().catch(() => showToast("Falha ao exportar PDF.", true)));
   els.batch.addEventListener("click", downloadBatch);
   new ResizeObserver(fitStage).observe(els.shell);
   registerWebMcpTools();
   renderAll();
 
+  history = window.CertificateHistory.create({
+    state, design: DESIGN,
+    restore() {
+      setDesignSize(DESIGN.width, DESIGN.height);
+      els.exportQuality.value = state.exportQuality;
+      els.fieldFont.querySelectorAll("option[data-custom-font]").forEach((option) => option.remove());
+      state.customFonts.forEach((font) => {
+        document.fonts.add(font.fontFace);
+        const option = document.createElement("option");
+        option.value = font.family; option.textContent = `${font.displayName} · personalizada`;
+        option.dataset.customFont = "1"; els.fieldFont.append(option);
+      });
+      renderAll();
+    },
+    onChange() { updateDataValidation(); window.CertificateProjectIO?.markDirty(); },
+    onButtons(undo, redo) { $("undoButton").disabled = !undo; $("redoButton").disabled = !redo; }
+  });
+  $("undoButton").addEventListener("click", () => history.undo());
+  $("redoButton").addEventListener("click", () => history.redo());
+  document.addEventListener("input", (event) => {
+    history.setGroup(`${event.target.id}:${state.selectedField}`);
+  }, true);
+  document.addEventListener("pointerdown", () => { history.capture(); history.setGroup(null); }, true);
+  document.addEventListener("change", () => history.setGroup(null), true);
+  document.addEventListener("keydown", (event) => {
+    if (!isTypingTarget(event.target)) history.setGroup(event.key.startsWith("Arrow") ? `arrows:${state.selectedIds.join(",")}` : null);
+  }, true);
+  updateDataValidation();
+
   // project-io hook: expose a minimal bridge for save / load / autosave.
-  window.CertificateProjectIO?.attach({ state, DESIGN, els, setDesignSize, renderAll, loadImage, showToast });
+  window.CertificateProjectIO?.attach({ state, DESIGN, els, setDesignSize, renderAll, loadImage, showToast, captureHistory: () => history.capture() });
 
   function registerWebMcpTools() {
     const context = document.modelContext;
@@ -2395,7 +2445,7 @@
     };
     register({
       name: "set_certificate_records",
-      title: "Set certificate records",
+      title: "Definir dados dos certificados",
       description: "Replace the visible certificate recipient data with a batch of records. Record keys become {{placeholder}} names.",
       inputSchema: {
         type: "object",
@@ -2405,6 +2455,7 @@
       annotations: { readOnlyHint: false, untrustedContentHint: true },
       execute(input) {
         if (!input || !Array.isArray(input.records) || input.records.length === 0 || input.records.some((record) => !record || typeof record !== "object" || Array.isArray(record) || Object.keys(record).length === 0)) throw new Error("records must be a non-empty array of non-empty objects");
+        window.CertificateData.validateRecords(input.records);
         state.records = input.records.map((record) => Object.fromEntries(Object.entries(record).map(([key, value]) => [key, String(value)])));
         state.currentRecord = 0; renderData(); renderFields();
         return { recordCount: state.records.length, placeholders: uniqueKeys() };
@@ -2412,7 +2463,7 @@
     });
     register({
       name: "add_certificate_text_field",
-      title: "Add certificate text field",
+      title: "Adicionar texto ao certificado",
       description: "Add and select a visible text field on the certificate canvas. The text may contain placeholders such as {{name}}.",
       inputSchema: {
         type: "object",

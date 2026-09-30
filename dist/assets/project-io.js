@@ -57,7 +57,27 @@
   let autosaveTimer = null;
   let autosaveEnabled = false;
   let lastSignature = null;
-  let restoreDecisionPending = false;
+  let restoreDecisionPending = true;
+  let revision = 0;
+  let saveInFlight = false;
+  let saveFailed = false;
+
+  function setSaveStatus(kind, message) {
+    const status = document.getElementById("saveStatus");
+    if (!status) return;
+    status.dataset.state = kind;
+    status.textContent = message;
+    status.title = "O salvamento automático fica neste navegador. Use Salvar projeto para baixar uma cópia de segurança.";
+  }
+
+  function markDirty() {
+    revision++;
+    if (restoreDecisionPending) {
+      setSaveStatus("paused", "Salvamento pausado: escolha como recuperar o projeto anterior.");
+    } else if (!saveFailed) {
+      setSaveStatus("pending", "Alterações pendentes…");
+    }
+  }
 
   /* ------------------------------------------------------------------ utils */
 
@@ -125,7 +145,7 @@
       else if (ArrayBuffer.isView(font.data)) data = bytesToBase64(font.data.buffer);
       return {
         family: String(font.family || ""),
-        displayName: String(font.displayName || font.family || "Custom font"),
+        displayName: String(font.displayName || font.family || "Fonte personalizada"),
         fileName: String(font.fileName || ""),
         data
       };
@@ -162,7 +182,7 @@
         sourceSrc: item.sourceSrc || item.src || null
       })).filter((item) => item.sourceSrc),
       background: {
-        name: state.backgroundName || "Sample template",
+        name: state.backgroundName || "Modelo de exemplo",
         sourceSrc: state.backgroundSourceSrc || null,
         crop: normalizeCropRect(state.backgroundCrop),
         blank: Boolean(state.blankBackground)
@@ -188,30 +208,31 @@
 
   /** Throws Error with a human readable message when `data` is not a project. */
   function validateProject(data) {
-    if (!isObject(data)) throw new Error("That file is not a Certificate Generator project.");
-    if (data.schema !== SCHEMA) throw new Error("That file is not a Certificate Generator project.");
+    if (!isObject(data)) throw new Error("Este arquivo não é um projeto do Gerador de Certificados.");
+    if (data.schema !== SCHEMA) throw new Error("Este arquivo não é um projeto do Gerador de Certificados.");
     const version = Number(data.version);
-    if (!Number.isInteger(version) || version < 1) throw new Error("This project file has an invalid version number.");
-    if (version > VERSION) throw new Error(`This project was saved by a newer version (v${version}). Update the app to open it.`);
-    if (!Array.isArray(data.fields)) throw new Error("This project file has a damaged text field list.");
+    if (!Number.isInteger(version) || version < 1) throw new Error("A versão deste projeto é inválida.");
+    if (version > VERSION) throw new Error(`Este projeto foi salvo em uma versão mais recente (v${version}). Atualize o aplicativo para abri-lo.`);
+    if (!Array.isArray(data.fields)) throw new Error("A lista de textos do projeto está danificada.");
     if (data.layerOrder !== undefined && (!Array.isArray(data.layerOrder) || data.layerOrder.some((id) => typeof id !== "string"))) {
-      throw new Error("This project file has a damaged layer order.");
+      throw new Error("A ordem das camadas do projeto está danificada.");
     }
-    if (!Array.isArray(data.records) || data.records.length === 0) throw new Error("This project file has no recipient records.");
-    if (data.images && !Array.isArray(data.images)) throw new Error("This project file has a damaged picture layer list.");
-    if (data.fonts && !Array.isArray(data.fonts)) throw new Error("This project file has a damaged font list.");
-    if (data.photos && !Array.isArray(data.photos)) throw new Error("This project file has a damaged dynamic picture list.");
-    if (data.shapes && !Array.isArray(data.shapes)) throw new Error("This project file has a damaged shape layer list.");
+    if (!Array.isArray(data.records) || data.records.length === 0) throw new Error("O projeto não contém registros de participantes.");
+    if (data.images && !Array.isArray(data.images)) throw new Error("A lista de imagens do projeto está danificada.");
+    if (data.fonts && !Array.isArray(data.fonts)) throw new Error("A lista de fontes do projeto está danificada.");
+    if (data.photos && !Array.isArray(data.photos)) throw new Error("A lista de imagens dinâmicas do projeto está danificada.");
+    if (data.shapes && !Array.isArray(data.shapes)) throw new Error("A lista de formas do projeto está danificada.");
     if (!isObject(data.design) || !(num(data.design.width) > 0) || !(num(data.design.height) > 0)) {
-      throw new Error("This project file has invalid canvas dimensions.");
+      throw new Error("As dimensões do projeto são inválidas.");
     }
     data.fields.forEach((item, index) => {
       if (!isObject(item) || typeof item.id !== "string" || typeof item.text !== "string") {
-        throw new Error(`Text field ${index + 1} in this project file is damaged.`);
+        throw new Error(`O texto ${index + 1} deste projeto está danificado.`);
       }
     });
+    window.CertificateData.validateRecords(data.records);
     data.records.forEach((record, index) => {
-      if (!isObject(record)) throw new Error(`Record ${index + 1} in this project file is damaged.`);
+      if (!isObject(record)) throw new Error(`O registro ${index + 1} deste projeto está danificado.`);
     });
     return true;
   }
@@ -298,7 +319,7 @@
     restored.forEach((font) => {
       const option = document.createElement("option");
       option.value = font.family;
-      option.textContent = `${font.displayName} · custom`;
+      option.textContent = `${font.displayName} · personalizada`;
       option.dataset.customFont = "1";
       els.fieldFont.append(option);
     });
@@ -313,7 +334,7 @@
     const { state, els, setDesignSize, renderAll, loadImage } = api;
 
     const fonts = Array.isArray(data.fonts) ? data.fonts : [];
-    const missingFonts = await restoreFonts(fonts);
+
 
     // Background ------------------------------------------------------------
     let backgroundSourceImage = null;
@@ -339,7 +360,7 @@
         const image = crop ? await loadImage(src) : sourceImage;
         images.push({
           id: String(entry.id || `image-${Date.now()}-${images.length}`),
-          name: String(entry.name || "Picture"),
+          name: String(entry.name || "Imagem"),
           src, image, sourceSrc: entry.sourceSrc, sourceImage,
           x: num(entry.x), y: num(entry.y),
           width: Math.max(1, num(entry.width, 100)),
@@ -352,6 +373,8 @@
         console.warn("Picture layer could not be restored", entry.id, error);
       }
     }
+
+    const missingFonts = await restoreFonts(fonts);
 
     // Canvas size: clear layers first so setDesignSize does not rescale them,
     // because saved coordinates are already in the saved design space.
@@ -375,7 +398,7 @@
     state.backgroundSourceImage = backgroundSourceImage;
     state.backgroundSourceSrc = background.sourceSrc || null;
     state.backgroundCrop = backgroundCrop;
-    state.backgroundName = String(background.name || (backgroundSourceImage ? "Project background" : "Sample template"));
+    state.backgroundName = String(background.name || (backgroundSourceImage ? "Fundo do projeto" : "Modelo de exemplo"));
     state.blankBackground = Boolean(background.blank) && !backgroundSourceImage;
     state.exportQuality = ["normal", "high", "xhigh"].includes(data.exportQuality) ? data.exportQuality : "xhigh";
     state.interaction = null;
@@ -386,7 +409,7 @@
 
     if (els.exportQuality) els.exportQuality.value = state.exportQuality;
     renderAll();
-    lastSignature = signature();
+    api.captureHistory?.();
     return { fields: state.fields.length, images: state.images.length, records: state.records.length, fonts: missingFonts.length };
   }
 
@@ -408,7 +431,7 @@
       const json = JSON.stringify(data);
       const blob = new Blob([json], { type: "application/json" });
       if (blob.size > LARGE_FILE_BYTES) {
-        toast(`Saving a large project (${formatBytes(blob.size)}) — nothing is truncated, but it may take a moment.`);
+        toast(`Salvando um projeto grande (${formatBytes(blob.size)}). Isso pode levar alguns instantes.`);
       }
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -418,11 +441,11 @@
       anchor.click();
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      if (blob.size <= LARGE_FILE_BYTES) toast(`Project saved · ${formatBytes(blob.size)}`);
+      if (blob.size <= LARGE_FILE_BYTES) toast(`Projeto baixado · ${formatBytes(blob.size)}`);
       return blob.size;
     } catch (error) {
       console.error("Project save failed", error);
-      toast("The project could not be saved.", true);
+      toast("Não foi possível salvar o projeto.", true);
       return 0;
     }
   }
@@ -435,14 +458,15 @@
       try {
         data = JSON.parse(text.replace(/^\uFEFF/, ""));
       } catch (error) {
-        throw new Error("That file is not valid JSON.");
+        throw new Error("Este arquivo não contém JSON válido.");
       }
       const summary = await applyProject(data);
-      toast(`Project loaded · ${summary.fields} text, ${summary.images} picture, ${summary.records} records`);
+      toast(`Projeto aberto · ${summary.fields} textos, ${summary.images} imagens, ${summary.records} registros`);
+      hideBanner(document.getElementById("restoreBanner"));
       scheduleAutosave(true);
     } catch (error) {
       console.error("Project load failed", error);
-      toast(error.message || "That project file could not be opened.", true);
+      toast(error.message || "Não foi possível abrir o projeto.", true);
     }
   }
 
@@ -480,6 +504,8 @@
         const request = work(store);
         if (request) request.onsuccess = () => { result = request.result; };
       } catch (error) {
+        tx.abort();
+        db.close();
         reject(error);
         return;
       }
@@ -498,8 +524,8 @@
   function signature() {
     const { state, DESIGN } = api;
     return JSON.stringify([
-      DESIGN.width, DESIGN.height,
-      state.records, state.currentRecord, state.selectedField, state.exportQuality,
+      revision, DESIGN.width, DESIGN.height,
+      state.records, state.exportQuality,
       state.fields,
       state.images.map((item) => [item.id, item.name, item.x, item.y, item.width, item.height, item.opacity, rotation(item.rotation), item.crop, (item.sourceSrc || "").length]),
       state.backgroundName, (state.backgroundSourceSrc || "").length, state.backgroundCrop, Boolean(state.blankBackground),
@@ -511,49 +537,55 @@
   }
 
   async function runAutosave(force = false) {
-    if (!api || (!autosaveEnabled && !force)) return;
-    let current;
-    try {
-      current = signature();
-    } catch (error) {
-      return;
-    }
+    if (!api || restoreDecisionPending || saveInFlight || (!autosaveEnabled && !force)) return;
+    const current = signature();
     if (!force && current === lastSignature) return;
+    saveInFlight = true;
+    setSaveStatus("saving", "Salvando neste navegador…");
     try {
       const data = serializeProject();
-      const approximate = JSON.stringify(data).length;
-      if (approximate > AUTOSAVE_MAX_BYTES) {
-        lastSignature = current;
-        console.warn("Autosave skipped: project too large", approximate);
+      const bytes = new Blob([JSON.stringify(data)]).size;
+      if (bytes > AUTOSAVE_MAX_BYTES) {
+        saveFailed = true;
+        setSaveStatus("error", "Projeto acima de 80 MB: use Salvar projeto para baixar uma cópia.");
         return;
       }
-      await writeAutosave({ savedAt: Date.now(), bytes: approximate, project: data });
+      const savedAt = Date.now();
+      await writeAutosave({ savedAt, bytes, project: data });
       lastSignature = current;
+      saveFailed = false;
+      if (signature() !== current) setSaveStatus("pending", "Alterações pendentes…");
+      else setSaveStatus("saved", `Salvo neste navegador às ${new Date(savedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`);
     } catch (error) {
       console.warn("Autosave unavailable", error);
-      autosaveEnabled = false;      // quota exceeded / private mode / blocked
+      saveFailed = true;
+      autosaveEnabled = false;
       if (autosaveTimer) { clearInterval(autosaveTimer); autosaveTimer = null; }
-    }
+      setSaveStatus("error", "Falha no salvamento automático. Use Salvar projeto para baixar uma cópia.");
+    } finally { saveInFlight = false; }
   }
 
   function scheduleAutosave(immediate = false) {
+    restoreDecisionPending = false;
     autosaveEnabled = true;
+    saveFailed = false;
     if (!autosaveTimer) autosaveTimer = setInterval(() => { runAutosave(); }, AUTOSAVE_INTERVAL_MS);
     if (immediate) runAutosave(true);
+    else if (signature() !== lastSignature) setSaveStatus("pending", "Alterações pendentes…");
   }
 
   /* ------------------------------------------------------------ restore UI */
 
   function relativeTime(timestamp) {
     const seconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
-    if (seconds < 60) return "moments ago";
-    if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
-    if (seconds < 86400) return `${Math.round(seconds / 3600)} h ago`;
-    return `${Math.round(seconds / 86400)} days ago`;
+    if (seconds < 60) return "há instantes";
+    if (seconds < 3600) return `há ${Math.round(seconds / 60)} min`;
+    if (seconds < 86400) return `há ${Math.round(seconds / 3600)} h`;
+    return `há ${Math.round(seconds / 86400)} dias`;
   }
 
   function hideBanner(banner) {
-    banner.hidden = true;
+    if (banner) banner.hidden = true;
     restoreDecisionPending = false;
   }
 
@@ -570,7 +602,10 @@
       record = await readAutosave();
     } catch (error) {
       console.warn("Autosave restore point unavailable", error);
-      return; // IndexedDB unusable: no autosave, app keeps working
+      restoreDecisionPending = false;
+      saveFailed = true;
+      setSaveStatus("error", "Salvamento automático indisponível. Use Salvar projeto para baixar uma cópia.");
+      return;
     }
     if (!record || !isObject(record.project)) { scheduleAutosave(); return; }
 
@@ -578,31 +613,39 @@
       validateProject(record.project);
     } catch (error) {
       console.warn("Discarding damaged restore point", error);
-      deleteAutosave().catch(() => {});
+      await deleteAutosave().catch(() => {});
       scheduleAutosave();
       return;
     }
 
     restoreDecisionPending = true;
+    setSaveStatus("paused", "Cópia anterior encontrada. Escolha se deseja restaurá-la.");
     const size = record.bytes ? ` · ${formatBytes(record.bytes)}` : "";
-    if (meta) meta.textContent = `Autosaved ${relativeTime(record.savedAt || Date.now())}${size}`;
+    if (meta) meta.textContent = `Salvo automaticamente ${relativeTime(record.savedAt || Date.now())}${size}`;
     banner.hidden = false;
 
     applyButton.addEventListener("click", async () => {
       hideBanner(banner);
       try {
         const summary = await applyProject(record.project);
-        toast(`Last design restored · ${summary.fields} text, ${summary.images} picture layers`);
+        toast(`Último projeto restaurado · ${summary.fields} textos, ${summary.images} imagens`);
       } catch (error) {
         console.error("Restore failed", error);
-        toast("The autosaved design could not be restored.", true);
+        toast("Não foi possível restaurar o projeto salvo automaticamente.", true);
+        restoreDecisionPending = true;
+        banner.hidden = false;
+        applyButton.disabled = true;
+        setSaveStatus("error", "Falha ao restaurar. A cópia anterior foi preservada.");
+        return;
       }
       scheduleAutosave(true);
     }, { once: true });
 
     dismissButton?.addEventListener("click", () => {
       hideBanner(banner);
-      toast("Restore point kept — it stays available until you save over it.");
+      toast("Cópia anterior preservada até a próxima alteração do projeto.");
+      lastSignature = signature();
+      setSaveStatus("paused", "Cópia anterior preservada até a próxima alteração.");
       // Deliberately do NOT start autosaving: keep the restore point intact
       // for this session unless the user changes something later.
       scheduleAutosave();
@@ -612,9 +655,9 @@
       hideBanner(banner);
       try {
         await deleteAutosave();
-        toast("Restore point discarded");
+        toast("Cópia de recuperação descartada");
       } catch (error) {
-        toast("The restore point could not be discarded.", true);
+        toast("Não foi possível descartar a cópia de recuperação.", true);
       }
       scheduleAutosave();
     }, { once: true });
@@ -632,7 +675,7 @@
       await loadProjectFile(file);
       event.target.value = "";
     });
-    try { lastSignature = signature(); } catch (error) { lastSignature = null; }
+    lastSignature = null;
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden" && autosaveEnabled && !restoreDecisionPending) runAutosave();
     });
@@ -645,6 +688,7 @@
   window.CertificateProjectIO = {
     SCHEMA, VERSION, FILE_SUFFIX,
     attach,
+    markDirty,
     serializeProject,
     validateProject,
     applyProject,

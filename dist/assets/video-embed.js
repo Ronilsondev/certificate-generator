@@ -20,7 +20,7 @@
     iframe.width = "560";
     iframe.height = "315";
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
-    iframe.title = "YouTube video player";
+    iframe.title = "Reprodutor de vídeo do YouTube";
     iframe.setAttribute("frameborder", "0");
     iframe.setAttribute(
       "allow",

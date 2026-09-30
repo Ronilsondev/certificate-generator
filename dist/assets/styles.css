@@ -537,3 +537,24 @@ textarea { resize: vertical; line-height: 1.4; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Editing feedback stays visible on desktop and mobile. */
+.save-status { max-width: 260px; color: #cbd5e1; font-size: .75rem; line-height: 1.4; }
+.save-status[data-state="saved"] { color: #98ebbb; }
+.save-status[data-state="pending"], .save-status[data-state="paused"] { color: #ffe0a1; }
+.save-status[data-state="error"] { color: #ffb7be; }
+.button:disabled { opacity: .5; cursor: not-allowed; }
+.data-validation { margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: .76rem; overflow-wrap: anywhere; }
+.data-validation p { margin: 8px 0 0; line-height: 1.5; }
+.data-validation ul { margin: 8px 0 0; padding-left: 18px; }
+.data-validation li + li { margin-top: 6px; }
+.data-validation ul:empty { display: none; }
+.data-validation[data-state="invalid"] { border-color: #d1a04e; background: #fff8e9; }
+.data-validation[data-state="valid"] > strong { color: #25613f; }
+.validation-hint { color: var(--muted); }
+.import-error { color: #902a32; font-weight: 600; }
+@media (max-width: 760px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar-actions { justify-content: flex-start; }
+  .save-status { flex-basis: 100%; max-width: none; }
+}

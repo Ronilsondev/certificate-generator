@@ -1,98 +1,109 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Create personalized certificates from a CSV or text file, entirely in your browser." />
+    <meta name="description" content="Crie certificados personalizados a partir de CSV ou TXT, diretamente no navegador." />
     <meta name="theme-color" content="#101b34" />
-    <title>Certificate Generator — free bulk certificates from CSV, in your browser</title>
+    <title>Gerador de Certificados — certificados em lote a partir de CSV no navegador</title>
     <link rel="canonical" href="https://avikhagol.github.io/certificate-generator/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Certificate Generator" />
-    <meta property="og:title" content="Certificate Generator — free bulk certificates from CSV" />
-    <meta property="og:description" content="Turn a CSV into hundreds of certificates as PNG and PDF. Runs entirely in your browser: no signup, no upload, no backend, zero dependencies." />
+    <meta property="og:site_name" content="Gerador de Certificados" />
+    <meta property="og:title" content="Gerador de Certificados — certificados em lote a partir de CSV" />
+    <meta property="og:description" content="Transforme um CSV em centenas de certificados PNG e PDF. Tudo no navegador, sem cadastro nem envio de arquivos." />
     <meta property="og:url" content="https://avikhagol.github.io/certificate-generator/" />
     <meta property="og:image" content="https://avikhagol.github.io/certificate-generator/assets/social-preview.png" />
     <meta property="og:image:width" content="1365" />
     <meta property="og:image:height" content="768" />
-    <meta property="og:image:alt" content="A CSV file turning into a stack of printed certificates in one click" />
+    <meta property="og:image:alt" content="Um arquivo CSV transformado em certificados com um clique" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Certificate Generator — free bulk certificates from CSV" />
-    <meta name="twitter:description" content="Turn a CSV into hundreds of certificates as PNG and PDF. Runs entirely in your browser: no signup, no upload, no backend, zero dependencies." />
+    <meta name="twitter:title" content="Gerador de Certificados — certificados em lote a partir de CSV" />
+    <meta name="twitter:description" content="Transforme um CSV em centenas de certificados PNG e PDF. Tudo no navegador, sem cadastro nem envio de arquivos." />
     <meta name="twitter:image" content="https://avikhagol.github.io/certificate-generator/assets/social-preview.png" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101b34'/%3E%3Ccircle cx='32' cy='27' r='15' fill='none' stroke='%23eabf70' stroke-width='5'/%3E%3Cpath d='M24 39l-3 17 11-6 11 6-3-17' fill='%23eabf70'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="assets/styles.css" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Certificate Generator home">
+      <a class="brand" href="#" aria-label="Página inicial do Gerador de Certificados">
         <span class="brand-mark" aria-hidden="true">C</span>
-        <span>Certificate Generator</span>
+        <span>Gerador de Certificados</span>
       </a>
       <div class="topbar-actions">
-        <span class="privacy-note"><span class="privacy-dot"></span>Files stay on this device</span>
+        <span class="privacy-note"><span class="privacy-dot"></span>Seus arquivos ficam neste dispositivo</span>
         <label class="quality-control" for="exportQuality">
-          <span>Quality</span>
-          <select id="exportQuality" aria-label="Export quality">
+          <span>Qualidade</span>
+          <select id="exportQuality" aria-label="Qualidade da exportação">
             <option value="normal">Normal · 1×</option>
-            <option value="high">High · 2×</option>
-            <option value="xhigh" selected>XHigh · 3×</option>
+            <option value="high">Alta · 2×</option>
+            <option value="xhigh" selected>Muito alta · 3×</option>
           </select>
         </label>
-        <button class="button button-quiet" id="saveProjectButton" type="button" title="Download this design as a self-contained .certproj.json file">Save project</button>
-        <label class="button button-quiet upload-button" for="loadProjectInput" title="Open a previously saved .certproj.json project">
-          Load project
+        <button class="button button-quiet" id="saveProjectButton" type="button" title="Baixar este projeto como arquivo .certproj.json; imagens dinâmicas precisam ser vinculadas novamente">Salvar projeto</button>
+        <label class="button button-quiet upload-button" for="loadProjectInput" title="Abrir um projeto .certproj.json salvo anteriormente">
+          Abrir projeto
           <input id="loadProjectInput" type="file" accept=".json,application/json" hidden />
         </label>
-        <button class="button button-quiet" id="resetButton" type="button">Reset</button>
-        <button class="button button-primary" id="downloadPngButton" type="button">Download PNG</button>
-        <button class="button button-primary" id="downloadPdfButton" type="button">Download PDF</button>
-        <button class="button button-accent" id="batchButton" type="button">Download all (.zip)</button>
+        <span id="saveStatus" class="save-status" role="status" aria-live="polite" data-state="checking">Verificando salvamento…</span>
+        <button class="button button-quiet" id="undoButton" type="button" title="Desfazer · Ctrl Z" disabled>↶ Desfazer</button>
+        <button class="button button-quiet" id="redoButton" type="button" title="Refazer · Ctrl Shift Z ou Ctrl Y" disabled>↷ Refazer</button>
+        <button class="button button-quiet" id="resetButton" type="button">Reiniciar</button>
+        <button class="button button-primary" id="downloadPngButton" type="button">Baixar PNG</button>
+        <button class="button button-primary" id="downloadPdfButton" type="button">Baixar PDF</button>
+        <button class="button button-accent" id="batchButton" type="button">Baixar todos (.zip)</button>
       </div>
     </header>
 
     <main class="studio">
-      <aside class="panel data-panel" id="dataPanel" aria-label="Certificate data">
+      <aside class="panel data-panel" id="dataPanel" aria-label="Dados do certificado">
         <div class="panel-heading">
-          <h1>Data</h1>
-          <span class="count-pill" id="recordCount">3 records</span>
+          <h1>Dados</h1>
+          <span class="count-pill" id="recordCount">3 registros</span>
         </div>
 
         <label class="upload-card" for="dataUpload">
           <span class="upload-icon" aria-hidden="true">↑</span>
-          <strong>Upload CSV or TXT</strong>
-          <span>Headers become placeholders</span>
+          <strong>Importar CSV ou TXT</strong>
+          <span>Os cabeçalhos viram variáveis</span>
           <input id="dataUpload" type="file" accept=".csv,.txt,text/csv,text/plain" hidden />
         </label>
-        <button class="text-button" id="sampleDataButton" type="button">Restore sample data</button>
+        <button class="text-button" id="sampleDataButton" type="button">Restaurar dados de exemplo</button>
+
+        <section id="dataValidation" class="data-validation" aria-labelledby="validationTitle" tabindex="-1">
+          <strong id="validationTitle">Validação dos dados</strong>
+          <p id="validationSummary" role="status" aria-live="polite"></p>
+          <p id="dataImportError" class="import-error" role="alert" hidden></p>
+          <ul id="validationIssues"></ul>
+          <p class="validation-hint">CSV: vírgula, ponto e vírgula ou tabulação. TXT: um nome por linha, disponível em {{name}}.</p>
+        </section>
 
         <details class="photo-library">
-          <summary>Dynamic pictures</summary>
+          <summary>Imagens dinâmicas</summary>
           <div class="photo-library-actions">
-            <button class="button button-quiet" id="photoFolderButton" type="button" title="Pick a folder of recipient images; nothing is uploaded">Link image folder</button>
+            <button class="button button-quiet" id="photoFolderButton" type="button" title="Escolher uma pasta de imagens dos participantes; nada é enviado">Vincular pasta de imagens</button>
             <input id="photoFolderInput" type="file" multiple webkitdirectory directory hidden />
             <label class="text-button upload-button" for="photoFilesInput">
-              <span id="photoFilesLabel">or pick files</span>
+              <span id="photoFilesLabel">ou escolher arquivos</span>
               <input id="photoFilesInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
             </label>
           </div>
-          <p class="photo-library-status" id="photoLibraryStatus">No image folder linked</p>
+          <p class="photo-library-status" id="photoLibraryStatus">Nenhuma pasta de imagens vinculada</p>
           <div class="photo-library-links">
-            <button class="text-button" id="photoRefreshButton" type="button" hidden>Refresh</button>
-            <button class="text-button" id="photoReportButton" type="button" hidden>Match report</button>
-            <button class="text-button" id="photoUnlinkButton" type="button" hidden>Unlink</button>
+            <button class="text-button" id="photoRefreshButton" type="button" hidden>Atualizar</button>
+            <button class="text-button" id="photoReportButton" type="button" hidden>Relatório de correspondências</button>
+            <button class="text-button" id="photoUnlinkButton" type="button" hidden>Desvincular</button>
           </div>
-          <p class="photo-library-hint">Match a CSV filename to a local image. Relink folders after loading a project.</p>
+          <p class="photo-library-hint">Associe um nome de arquivo do CSV a uma imagem local. Vincule as pastas novamente ao abrir um projeto.</p>
         </details>
 
         <div class="section-title-row">
-          <h2>Preview record</h2>
+          <h2>Prévia do registro</h2>
           <span id="recordPosition">1 / 3</span>
         </div>
         <div class="record-nav">
-          <button class="icon-button" id="previousRecord" type="button" aria-label="Previous record">←</button>
-          <select id="recordSelect" aria-label="Choose preview record"></select>
-          <button class="icon-button" id="nextRecord" type="button" aria-label="Next record">→</button>
+          <button class="icon-button" id="previousRecord" type="button" aria-label="Registro anterior">←</button>
+          <select id="recordSelect" aria-label="Escolher registro para prévia"></select>
+          <button class="icon-button" id="nextRecord" type="button" aria-label="Próximo registro">→</button>
         </div>
 
         <div class="data-table-wrap">
@@ -102,9 +113,9 @@
         </div>
 
         <div class="placeholder-box">
-          <h2>Placeholders</h2>
+          <h2>Variáveis</h2>
           <div class="chips" id="placeholderChips"></div>
-          <p>Click a placeholder to add it to the selected text.</p>
+          <p>Clique em uma variável para adicioná-la ao texto selecionado.</p>
         </div>
 
         <p class="project-link"><a href="https://github.com/avikhagol/certificate-generator" target="_blank" rel="noopener noreferrer">GitHub ↗</a></p>
@@ -123,39 +134,39 @@
         </aside>-->
       </aside>
 
-      <section class="workspace" aria-label="Certificate preview">
+      <section class="workspace" aria-label="Prévia do certificado">
         <div class="workspace-toolbar">
           <div>
-            <h2>Canvas</h2>
-            <div class="pane-controls" role="group" aria-label="Side panels">
-              <button class="text-button" id="toggleDataPanel" type="button" aria-controls="dataPanel" aria-expanded="true">Hide Data</button>
-              <button class="text-button" id="toggleLayersPanel" type="button" aria-controls="layersPanel" aria-expanded="true">Hide Layers</button>
+            <h2>Área de edição</h2>
+            <div class="pane-controls" role="group" aria-label="Painéis laterais">
+              <button class="text-button" id="toggleDataPanel" type="button" aria-controls="dataPanel" aria-expanded="true">Ocultar dados</button>
+              <button class="text-button" id="toggleLayersPanel" type="button" aria-controls="layersPanel" aria-expanded="true">Ocultar camadas</button>
             </div>
           </div>
           <div class="toolbar-group">
             <label class="button button-quiet upload-button" for="backgroundUpload">
-              Change background
+              Alterar fundo
               <input id="backgroundUpload" type="file" accept="image/png,image/jpeg,image/webp" hidden />
             </label>
-            <button class="button button-quiet" id="cropBackgroundButton" type="button" disabled>Crop background</button>
+            <button class="button button-quiet" id="cropBackgroundButton" type="button" disabled>Recortar fundo</button>
             <label class="button button-quiet upload-button" for="imageElementUpload">
-              Add picture
+              Adicionar imagem
               <input id="imageElementUpload" type="file" accept="image/png,image/jpeg,image/webp" hidden />
             </label>
-            <button class="button button-quiet" id="clearBackgroundButton" type="button">Use sample template</button>
-            <button class="button button-quiet" id="blankTemplateButton" type="button" title="Clear every layer and start on a white canvas">Blank template</button>
-            <div class="zoom-control" role="group" aria-label="Canvas zoom">
-              <button class="zoom-step" id="zoomOutButton" type="button" aria-label="Zoom out" title="Zoom out · Ctrl -">−</button>
-              <button class="zoom-label" id="zoomLabel" type="button" title="Jump to 100%">100%</button>
-              <button class="zoom-step" id="zoomInButton" type="button" aria-label="Zoom in" title="Zoom in · Ctrl +">+</button>
-              <button class="zoom-fit" id="zoomFitButton" type="button" title="Fit the whole canvas · Ctrl 0">Fit</button>
+            <button class="button button-quiet" id="clearBackgroundButton" type="button">Usar modelo de exemplo</button>
+            <button class="button button-quiet" id="blankTemplateButton" type="button" title="Remover todas as camadas e começar com um fundo branco">Modelo em branco</button>
+            <div class="zoom-control" role="group" aria-label="Zoom da área de edição">
+              <button class="zoom-step" id="zoomOutButton" type="button" aria-label="Reduzir" title="Reduzir · Ctrl -">−</button>
+              <button class="zoom-label" id="zoomLabel" type="button" title="Exibir em 100%">100%</button>
+              <button class="zoom-step" id="zoomInButton" type="button" aria-label="Ampliar" title="Ampliar · Ctrl +">+</button>
+              <button class="zoom-fit" id="zoomFitButton" type="button" title="Ajustar toda a área de edição · Ctrl 0">Ajustar</button>
             </div>
           </div>
         </div>
 
         <div class="canvas-shell" id="canvasShell">
           <div class="stage-viewport" id="stageViewport">
-            <div class="certificate-stage" id="certificateStage" tabindex="0" aria-label="Certificate canvas. Select and drag layers to position them.">
+            <div class="certificate-stage" id="certificateStage" tabindex="0" aria-label="Área do certificado. Selecione e arraste as camadas para posicioná-las.">
               <canvas id="backgroundCanvas" width="1200" height="848"></canvas>
               <div id="fieldLayer"></div>
               <div id="selectionMarquee" class="selection-marquee" hidden aria-hidden="true"></div>
@@ -164,121 +175,122 @@
         </div>
 
         <div class="canvas-help">
-          <p>Drag to move · Shift-click to select more · Drag empty space to box-select</p>
+          <p>Arraste para mover · Shift + clique para selecionar mais · Arraste no espaço vazio para selecionar uma área</p>
           <details class="shortcut-help">
-            <summary>Keyboard &amp; resize shortcuts</summary>
+            <summary>Atalhos de teclado e redimensionamento</summary>
             <dl>
-              <dt>Arrow keys / Shift + arrows</dt><dd>Move selection 1 / 10 px</dd>
-              <dt>Ctrl C / V / D</dt><dd>Copy / paste / duplicate selection</dd>
-              <dt>Delete / Backspace</dt><dd>Delete selection</dd>
-              <dt>Ctrl ↑ / ↓</dt><dd>Move one layer forward / backward</dd>
-              <dt>Ctrl Shift ↑ / ↓</dt><dd>Move selection to top / bottom</dd>
-              <dt>Shift while resizing</dt><dd>Keep ratio (also Ctrl Shift)</dd>
-              <dt>Ctrl while resizing</dt><dd>Equal width and height</dd>
-              <dt>Shift while rotating</dt><dd>Snap to 15°</dd>
-              <dt>Ctrl + scroll / Ctrl 0</dt><dd>Zoom / fit canvas</dd>
-              <dt>Escape</dt><dd>Clear selection</dd>
+              <dt>Setas / Shift + setas</dt><dd>Mover seleção em 1 / 10 px</dd>
+              <dt>Ctrl Z / Ctrl Shift Z ou Ctrl Y</dt><dd>Desfazer / refazer alterações</dd>
+              <dt>Ctrl C / V / D</dt><dd>Copiar / colar / duplicar seleção</dd>
+              <dt>Delete / Backspace</dt><dd>Excluir seleção</dd>
+              <dt>Ctrl ↑ / ↓</dt><dd>Mover uma camada para frente / para trás</dd>
+              <dt>Ctrl Shift ↑ / ↓</dt><dd>Mover seleção para frente / para o fundo</dd>
+              <dt>Shift ao redimensionar</dt><dd>Manter proporção (também Ctrl + Shift)</dd>
+              <dt>Ctrl ao redimensionar</dt><dd>Igualar largura e altura</dd>
+              <dt>Shift ao girar</dt><dd>Ajustar em passos de 15°</dd>
+              <dt>Ctrl + rolagem / Ctrl 0</dt><dd>Zoom / ajustar área de edição</dd>
+              <dt>Escape</dt><dd>Limpar seleção</dd>
             </dl>
-            <p>Use Command instead of Ctrl on Mac. Shortcuts leave text editing alone.</p>
+            <p>No Mac, use Command no lugar de Ctrl. Ao digitar, os atalhos de edição de texto são preservados.</p>
           </details>
         </div>
       </section>
 
-      <aside class="panel properties-panel" id="layersPanel" aria-label="Layer settings">
+      <aside class="panel properties-panel" id="layersPanel" aria-label="Configurações das camadas">
         <div class="panel-heading">
-          <h2>Layers</h2>
+          <h2>Camadas</h2>
           <div class="layer-actions">
-            <button class="button button-quiet layer-add-button" id="addFieldButton" type="button">+ Text</button>
-            <label class="button button-quiet layer-add-button" for="imageElementUpload">+ Picture</label>
-            <button class="button button-quiet layer-add-button" id="addShapeButton" type="button" title="Add a shape: rectangle, ellipse, triangle, polygon or star">+ Shape</button>
-            <button class="button button-quiet layer-add-button" id="addPhotoButton" type="button" title="Add a dynamic picture: a different image for every recipient">+ Dynamic</button>
+            <button class="button button-quiet layer-add-button" id="addFieldButton" type="button">+ Texto</button>
+            <label class="button button-quiet layer-add-button" for="imageElementUpload">+ Imagem</label>
+            <button class="button button-quiet layer-add-button" id="addShapeButton" type="button" title="Adicionar uma forma: retângulo, elipse, triângulo, polígono ou estrela">+ Forma</button>
+            <button class="button button-quiet layer-add-button" id="addPhotoButton" type="button" title="Adicionar uma imagem dinâmica: uma imagem diferente para cada participante">+ Dinâmica</button>
           </div>
-          <p class="image-layer-hint">Top layer first · Shift-click to select more</p>
+          <p class="image-layer-hint">Camada da frente primeiro · Shift + clique para selecionar mais</p>
         </div>
-        <div class="layers" id="fieldList" aria-label="Layers, topmost first"></div>
+        <div class="layers" id="fieldList" aria-label="Camadas, da frente para o fundo"></div>
 
         <div class="section-title-row properties-heading">
-          <h2 id="selectedLayerLabel">Selected text</h2>
+          <h2 id="selectedLayerLabel">Texto selecionado</h2>
           <div class="properties-actions">
-            <button class="text-button" id="duplicateFieldButton" type="button" title="Duplicate selection · Ctrl D">Duplicate</button>
-            <button class="danger-link" id="deleteFieldButton" type="button" title="Delete selection · Delete or Backspace">Delete</button>
+            <button class="text-button" id="duplicateFieldButton" type="button" title="Duplicar seleção · Ctrl D">Duplicar</button>
+            <button class="danger-link" id="deleteFieldButton" type="button" title="Excluir seleção · Delete ou Backspace">Excluir</button>
           </div>
         </div>
 
         <form id="fieldForm" class="field-form" autocomplete="off">
 
-          <label class="form-label" for="fieldText">Text & placeholders</label>
+          <label class="form-label" for="fieldText">Texto e variáveis</label>
           <textarea id="fieldText" rows="3" spellcheck="true"></textarea>
 
           <div class="form-grid">
             <div class="font-control">
-              <span class="form-label">Font</span>
+              <span class="form-label">Fonte</span>
               <div class="font-picker">
-                <select id="fieldFont" aria-label="Font family">
+                <select id="fieldFont" aria-label="Família da fonte">
                   <option value="Georgia">Georgia</option>
                   <option value="Arial">Arial</option>
                   <option value="Trebuchet MS">Trebuchet</option>
                   <option value="Times New Roman">Times New Roman</option>
                 </select>
-                <label class="font-upload-button" for="fontUpload" title="Upload a font from this device">
-                  + Custom
+                <label class="font-upload-button" for="fontUpload" title="Importar uma fonte deste dispositivo">
+                  + Personalizada
                   <input id="fontUpload" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden />
                 </label>
               </div>
-              <span class="font-hint" id="fontStatus">TTF, OTF, WOFF or WOFF2 · stays on this device</span>
+              <span class="font-hint" id="fontStatus">TTF, OTF, WOFF ou WOFF2 · ficam neste dispositivo</span>
             </div>
             <label>
-              <span class="form-label">Size</span>
+              <span class="form-label">Tamanho</span>
               <div class="unit-input"><input id="fieldSize" type="number" min="12" max="180" step="1" /><span>px</span></div>
             </label>
             <label>
-              <span class="form-label">Weight</span>
+              <span class="form-label">Peso</span>
               <select id="fieldWeight">
-                <option value="400">Regular</option>
-                <option value="600">Semibold</option>
-                <option value="700">Bold</option>
+                <option value="400">Normal</option>
+                <option value="600">Seminegrito</option>
+                <option value="700">Negrito</option>
               </select>
             </label>
             <label>
-              <span class="form-label">Color</span>
+              <span class="form-label">Cor</span>
               <div class="color-input"><input id="fieldColor" type="color" /><input id="fieldColorText" type="text" maxlength="7" /></div>
             </label>
           </div>
 
           <fieldset class="alignment-group">
-            <legend>Alignment</legend>
+            <legend>Alinhamento</legend>
             <div class="segmented" id="alignmentControl">
-              <button type="button" data-align="left" aria-label="Align left">≡</button>
-              <button type="button" data-align="center" aria-label="Align center">≡</button>
-              <button type="button" data-align="right" aria-label="Align right">≡</button>
+              <button type="button" data-align="left" aria-label="Alinhar à esquerda">≡</button>
+              <button type="button" data-align="center" aria-label="Centralizar">≡</button>
+              <button type="button" data-align="right" aria-label="Alinhar à direita">≡</button>
             </div>
           </fieldset>
 
           <div class="form-grid positions-grid">
             <label><span class="form-label">X</span><input id="fieldX" type="number" min="0" max="1200" /></label>
             <label><span class="form-label">Y</span><input id="fieldY" type="number" min="0" max="848" /></label>
-            <label><span class="form-label">Width</span><input id="fieldWidth" type="number" min="80" max="1200" /></label>
-            <label class="rotation-field"><span class="form-label">Rotation</span><div class="unit-input"><input id="fieldRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
+            <label><span class="form-label">Largura</span><input id="fieldWidth" type="number" min="80" max="1200" /></label>
+            <label class="rotation-field"><span class="form-label">Rotação</span><div class="unit-input"><input id="fieldRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
           </div>
         </form>
 
         <form id="imageForm" class="field-form image-form" autocomplete="off" hidden>
-          <div class="image-layer-preview"><img id="imageLayerPreview" alt="Selected picture layer" /></div>
+          <div class="image-layer-preview"><img id="imageLayerPreview" alt="Camada de imagem selecionada" /></div>
           <div class="image-edit-actions">
             <label class="button button-quiet replace-image-button" for="replaceImageUpload">
-              Replace picture
+              Substituir imagem
               <input id="replaceImageUpload" type="file" accept="image/png,image/jpeg,image/webp" hidden />
             </label>
-            <button class="button button-quiet" id="cropImageButton" type="button">Crop picture</button>
+            <button class="button button-quiet" id="cropImageButton" type="button">Recortar imagem</button>
           </div>
           <div class="form-grid positions-grid">
             <label><span class="form-label">X</span><input id="imageX" type="number" min="0" /></label>
             <label><span class="form-label">Y</span><input id="imageY" type="number" min="0" /></label>
-            <label><span class="form-label">Width</span><input id="imageWidth" type="number" min="20" /></label>
-            <label class="rotation-field"><span class="form-label">Rotation</span><div class="unit-input"><input id="imageRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
+            <label><span class="form-label">Largura</span><input id="imageWidth" type="number" min="20" /></label>
+            <label class="rotation-field"><span class="form-label">Rotação</span><div class="unit-input"><input id="imageRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
           </div>
           <label>
-            <span class="form-label">Opacity</span>
+            <span class="form-label">Opacidade</span>
             <div class="range-row"><input id="imageOpacity" type="range" min="10" max="100" step="1" /><output id="imageOpacityValue">100%</output></div>
           </label>
         </form>
@@ -286,83 +298,83 @@
         <form id="shapeForm" class="field-form shape-form" autocomplete="off" hidden>
           <div class="form-grid">
             <label>
-              <span class="form-label">Shape</span>
+              <span class="form-label">Forma</span>
               <select id="shapeKind">
-                <option value="rectangle">Rectangle / square</option>
-                <option value="rounded">Rounded rectangle</option>
-                <option value="ellipse">Ellipse / circle</option>
-                <option value="triangle">Triangle</option>
-                <option value="diamond">Diamond</option>
-                <option value="polygon">Polygon</option>
-                <option value="star">Star</option>
-                <option value="line">Line</option>
+                <option value="rectangle">Retângulo / quadrado</option>
+                <option value="rounded">Retângulo arredondado</option>
+                <option value="ellipse">Elipse / círculo</option>
+                <option value="triangle">Triângulo</option>
+                <option value="diamond">Losango</option>
+                <option value="polygon">Polígono</option>
+                <option value="star">Estrela</option>
+                <option value="line">Linha</option>
               </select>
             </label>
             <label id="shapeSidesField">
-              <span class="form-label">Sides / points</span>
+              <span class="form-label">Lados / pontas</span>
               <input id="shapeSides" type="number" min="3" max="16" step="1" />
             </label>
             <label id="shapeRadiusField">
-              <span class="form-label">Corner radius</span>
+              <span class="form-label">Raio dos cantos</span>
               <div class="unit-input"><input id="shapeRadius" type="number" min="0" step="1" /><span>px</span></div>
             </label>
             <label id="shapeFillField">
-              <span class="form-label">Fill</span>
+              <span class="form-label">Preenchimento</span>
               <div class="color-input"><input id="shapeFill" type="color" /><input id="shapeFillText" type="text" maxlength="7" /></div>
             </label>
             <label>
-              <span class="form-label">Border</span>
+              <span class="form-label">Borda</span>
               <div class="color-input"><input id="shapeStroke" type="color" /><input id="shapeStrokeText" type="text" maxlength="7" /></div>
             </label>
             <label>
-              <span class="form-label">Border width</span>
+              <span class="form-label">Espessura da borda</span>
               <div class="unit-input"><input id="shapeStrokeWidth" type="number" min="0" max="80" step="1" /><span>px</span></div>
             </label>
           </div>
 
-          <label class="shape-toggle"><input id="shapeFilled" type="checkbox" /><span>Fill this shape</span></label>
+          <label class="shape-toggle"><input id="shapeFilled" type="checkbox" /><span>Preencher esta forma</span></label>
 
           <div class="form-grid positions-grid">
             <label><span class="form-label">X</span><input id="shapeX" type="number" min="0" /></label>
             <label><span class="form-label">Y</span><input id="shapeY" type="number" min="0" /></label>
-            <label><span class="form-label">Width</span><input id="shapeWidth" type="number" min="4" /></label>
-            <label><span class="form-label">Height</span><input id="shapeHeight" type="number" min="4" /></label>
-            <label class="rotation-field"><span class="form-label">Rotation</span><div class="unit-input"><input id="shapeRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
+            <label><span class="form-label">Largura</span><input id="shapeWidth" type="number" min="4" /></label>
+            <label><span class="form-label">Altura</span><input id="shapeHeight" type="number" min="4" /></label>
+            <label class="rotation-field"><span class="form-label">Rotação</span><div class="unit-input"><input id="shapeRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
           </div>
 
           <label>
-            <span class="form-label">Opacity</span>
+            <span class="form-label">Opacidade</span>
             <div class="range-row"><input id="shapeOpacity" type="range" min="10" max="100" step="1" /><output id="shapeOpacityValue">100%</output></div>
           </label>
-          <p class="image-layer-hint">Resize: Shift keeps ratio · Ctrl makes a square or circle</p>
+          <p class="image-layer-hint">Redimensionar: Shift mantém a proporção · Ctrl cria um quadrado ou círculo</p>
         </form>
 
         <form id="photoForm" class="field-form photo-form" autocomplete="off" hidden>
           <div class="form-grid">
             <label>
-              <span class="form-label">CSV column</span>
-              <select id="photoColumn" aria-label="Column holding the image filename"></select>
+              <span class="form-label">Coluna do CSV</span>
+              <select id="photoColumn" aria-label="Coluna com o nome do arquivo de imagem"></select>
             </label>
             <label>
-              <span class="form-label">Fit</span>
+              <span class="form-label">Ajustar</span>
               <select id="photoFit">
-                <option value="cover">Cover · fill and crop</option>
-                <option value="contain">Contain · fit inside</option>
-                <option value="fill">Fill · stretch</option>
+                <option value="cover">Cobrir · preencher e recortar</option>
+                <option value="contain">Conter · mostrar inteira</option>
+                <option value="fill">Preencher · esticar</option>
               </select>
             </label>
             <label>
-              <span class="form-label">Shape</span>
+              <span class="form-label">Forma</span>
               <select id="photoShape">
-                <option value="rect">Rectangle</option>
-                <option value="circle">Circle</option>
+                <option value="rect">Retângulo</option>
+                <option value="circle">Círculo</option>
               </select>
             </label>
             <label>
-              <span class="form-label">If missing</span>
+              <span class="form-label">Se não encontrada</span>
               <select id="photoMissing">
-                <option value="skip">Leave empty</option>
-                <option value="placeholder">Draw placeholder</option>
+                <option value="skip">Deixar vazio</option>
+                <option value="placeholder">Desenhar marcador</option>
               </select>
             </label>
           </div>
@@ -370,13 +382,13 @@
           <div class="form-grid positions-grid">
             <label><span class="form-label">X</span><input id="photoX" type="number" min="0" /></label>
             <label><span class="form-label">Y</span><input id="photoY" type="number" min="0" /></label>
-            <label><span class="form-label">Width</span><input id="photoWidth" type="number" min="40" /></label>
-            <label><span class="form-label">Height</span><input id="photoHeight" type="number" min="40" /></label>
-            <label class="rotation-field"><span class="form-label">Rotation</span><div class="unit-input"><input id="photoRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
+            <label><span class="form-label">Largura</span><input id="photoWidth" type="number" min="40" /></label>
+            <label><span class="form-label">Altura</span><input id="photoHeight" type="number" min="40" /></label>
+            <label class="rotation-field"><span class="form-label">Rotação</span><div class="unit-input"><input id="photoRotation" type="number" min="-180" max="180" step="1" /><span>°</span></div></label>
           </div>
 
           <label>
-            <span class="form-label">Opacity</span>
+            <span class="form-label">Opacidade</span>
             <div class="range-row"><input id="photoOpacity" type="range" min="10" max="100" step="1" /><output id="photoOpacityValue">100%</output></div>
           </label>
           <p class="photo-match-note" id="photoMatchNote"></p>
@@ -384,20 +396,20 @@
 
         <div class="export-summary">
           <span class="export-icon" aria-hidden="true">✓</span>
-          <div><strong>Export quality</strong><span id="exportSummary">3 certificates · XHigh · 3600 × 2544</span></div>
+          <div><strong>Qualidade da exportação</strong><span id="exportSummary">3 certificados · Muito alta · 3600 × 2544</span></div>
         </div>
       </aside>
     </main>
 
-    <div class="restore-banner" id="restoreBanner" role="region" aria-label="Restore autosaved design" hidden>
+    <div class="restore-banner" id="restoreBanner" role="region" aria-label="Restaurar projeto salvo automaticamente" hidden>
       <div class="restore-copy">
-        <strong>Restore your last design?</strong>
-        <span id="restoreBannerMeta">Autosaved on this device</span>
+        <strong>Restaurar seu último projeto?</strong>
+        <span id="restoreBannerMeta">Salvo automaticamente neste dispositivo</span>
       </div>
       <div class="restore-actions">
-        <button class="button button-quiet" id="restoreDiscardButton" type="button">Discard</button>
-        <button class="button button-quiet" id="restoreDismissButton" type="button">Not now</button>
-        <button class="button button-accent" id="restoreApplyButton" type="button">Restore</button>
+        <button class="button button-quiet" id="restoreDiscardButton" type="button">Descartar</button>
+        <button class="button button-quiet" id="restoreDismissButton" type="button">Agora não</button>
+        <button class="button button-accent" id="restoreApplyButton" type="button">Restaurar</button>
       </div>
     </div>
 
@@ -405,18 +417,18 @@
       <form method="dialog" class="crop-card">
         <div class="crop-heading">
           <div>
-            <p class="eyebrow">Dynamic pictures</p>
-            <h2 id="photoReportTitle">Match report</h2>
+            <p class="eyebrow">Imagens dinâmicas</p>
+            <h2 id="photoReportTitle">Relatório de correspondências</h2>
           </div>
-          <button class="crop-close" type="submit" value="close" aria-label="Close match report">×</button>
+          <button class="crop-close" type="submit" value="close" aria-label="Fechar relatório de correspondências">×</button>
         </div>
         <p class="report-summary" id="photoReportSummary"></p>
         <div class="report-scroll">
           <table class="data-table"><tbody id="photoReportRows"></tbody></table>
         </div>
         <div class="report-actions">
-          <button class="button button-quiet" id="photoReportClose" type="submit" value="close">Close</button>
-          <button class="button button-primary" id="photoReportProceed" type="submit" value="proceed">Export anyway</button>
+          <button class="button button-quiet" id="photoReportClose" type="submit" value="close">Fechar</button>
+          <button class="button button-primary" id="photoReportProceed" type="submit" value="proceed">Exportar mesmo assim</button>
         </div>
       </form>
     </dialog>
@@ -425,8 +437,8 @@
     <div class="progress-overlay" id="progressOverlay" hidden>
       <div class="progress-card">
         <div class="spinner"></div>
-        <strong id="progressTitle">Preparing certificates</strong>
-        <span id="progressText">Starting…</span>
+        <strong id="progressTitle">Preparando certificados</strong>
+        <span id="progressText">Iniciando…</span>
         <div class="progress-track"><div id="progressBar"></div></div>
       </div>
     </div>
@@ -435,39 +447,41 @@
       <form method="dialog" class="crop-card">
         <div class="crop-heading">
           <div>
-            <p class="eyebrow">Image editor</p>
-            <h2 id="cropDialogTitle">Crop image</h2>
+            <p class="eyebrow">Editor de imagem</p>
+            <h2 id="cropDialogTitle">Recortar imagem</h2>
           </div>
-          <button class="crop-close" id="cropCancelIcon" value="cancel" aria-label="Close crop editor">×</button>
+          <button class="crop-close" id="cropCancelIcon" value="cancel" aria-label="Fechar editor de recorte">×</button>
         </div>
         <div class="crop-workspace">
-          <canvas id="cropCanvas" width="900" height="520" aria-label="Crop preview. Drag the crop box to move it or drag its lower-right handle to resize it."></canvas>
+          <canvas id="cropCanvas" width="900" height="520" aria-label="Prévia do recorte. Arraste a caixa para movê-la ou o canto inferior direito para redimensioná-la."></canvas>
         </div>
-        <p class="crop-help">Drag inside the frame to move it. Drag the lower-right corner to resize.</p>
+        <p class="crop-help">Arraste dentro da moldura para movê-la. Arraste o canto inferior direito para redimensionar.</p>
         <div class="crop-controls">
-          <label><span class="form-label">Aspect ratio</span>
+          <label><span class="form-label">Proporção</span>
             <select id="cropAspect">
-              <option value="free">Free</option>
-              <option value="certificate">Current certificate</option>
-              <option value="1">Square · 1:1</option>
-              <option value="1.3333333333">Standard · 4:3</option>
-              <option value="1.7777777778">Widescreen · 16:9</option>
+              <option value="free">Livre</option>
+              <option value="certificate">Certificado atual</option>
+              <option value="1">Quadrado · 1:1</option>
+              <option value="1.3333333333">Padrão · 4:3</option>
+              <option value="1.7777777778">Panorâmico · 16:9</option>
             </select>
           </label>
           <label><span class="form-label">X</span><input id="cropX" type="number" min="0" step="1" /></label>
           <label><span class="form-label">Y</span><input id="cropY" type="number" min="0" step="1" /></label>
-          <label><span class="form-label">Width</span><input id="cropWidth" type="number" min="1" step="1" /></label>
-          <label><span class="form-label">Height</span><input id="cropHeight" type="number" min="1" step="1" /></label>
+          <label><span class="form-label">Largura</span><input id="cropWidth" type="number" min="1" step="1" /></label>
+          <label><span class="form-label">Altura</span><input id="cropHeight" type="number" min="1" step="1" /></label>
         </div>
         <div class="crop-actions">
-          <button class="button button-quiet" id="cropResetButton" type="button">Reset crop</button>
+          <button class="button button-quiet" id="cropResetButton" type="button">Redefinir recorte</button>
           <span></span>
-          <button class="button button-quiet" value="cancel">Cancel</button>
-          <button class="button button-accent" id="cropApplyButton" type="button">Apply crop</button>
+          <button class="button button-quiet" value="cancel">Cancelar</button>
+          <button class="button button-accent" id="cropApplyButton" type="button">Aplicar recorte</button>
         </div>
       </form>
     </dialog>
 
+    <script src="assets/data-validation.js"></script>
+    <script src="assets/history.js"></script>
     <script src="assets/project-io.js"></script>
     <script src="assets/app.js"></script>
     <script src="assets/video-embed.js"></script>

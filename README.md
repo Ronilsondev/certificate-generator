@@ -110,3 +110,51 @@ For GitHub Pages, choose **Settings → Pages → GitHub Actions**. The included
 ## License
 
 [MIT](LICENSE) · [Source on GitHub](https://github.com/avikhagol/certificate-generator)
+
+## Interface em português e edição segura
+
+A interface está em português brasileiro, incluindo mensagens, ajuda, diálogos e
+modelo de exemplo. As chaves dos dados e as variáveis dos projetos existentes são
+preservadas: `{{name}}`, por exemplo, continua funcionando. Cabeçalhos em português,
+como `nome` e `curso`, também funcionam com `{{nome}}` e `{{curso}}`.
+
+- **Desfazer/refazer:** botões na barra superior, `Ctrl Z` e `Ctrl Shift Z` ou `Ctrl Y`
+  (Command no Mac). Há até 50 alterações no histórico da sessão, incluindo camadas,
+  imagens, recortes, dimensões, dados importados e abertura de projetos. Um arraste
+  conta como uma alteração; a digitação contínua é agrupada. Dentro dos campos de
+  texto, os atalhos nativos de edição são preservados. O histórico não é gravado no
+  arquivo de projeto. Pastas vinculadas de imagens dinâmicas ficam fora do histórico.
+- **Importação validada:** CSV com vírgula, ponto e vírgula ou tabulação, incluindo
+  campos entre aspas, quebras de linha e BOM UTF-8. Cabeçalhos vazios/repetidos,
+  aspas inválidas e linhas com quantidade incorreta de colunas são recusados,
+  mantendo os dados anteriores. TXT aceita um nome por linha na variável `{{name}}`.
+  O limite por arquivo de dados é 20 MB.
+- **Validação antes da exportação:** o painel Dados informa quais variáveis estão
+  ausentes ou vazias e os registros afetados. A exportação individual verifica o
+  registro atual; a exportação em lote verifica todos. Corrija o arquivo de dados
+  ou remova a variável do texto para exportar. O relatório existente de imagens
+  dinâmicas continua disponível separadamente.
+- **Estado do salvamento:** a barra superior informa alterações pendentes,
+  salvamento em andamento, confirmação no navegador ou falha. Falta de espaço,
+  armazenamento indisponível e projetos acima de 80 MB exibem um aviso para baixar
+  uma cópia com **Salvar projeto**. Uma cópia encontrada ao abrir o aplicativo fica
+  preservada até a decisão de recuperação. **Agora não** a preserva até a próxima
+  alteração do projeto. O salvamento automático é verificado a cada quatro segundos.
+
+### Verificação das alterações
+
+Os testes de dados e histórico usam apenas Node.js:
+
+```bash
+node tests/data-validation.test.cjs
+node tests/history.test.cjs
+```
+
+O teste de integração usa Python com Selenium, Chromium e chromedriver instalados
+(`/usr/bin/chromium` e `/usr/bin/chromedriver`). Ele inicia um servidor local
+temporário, verifica os fluxos de edição, importação, exportação, salvamento e
+recuperação, simula falhas de armazenamento e confere o layout móvel:
+
+```bash
+python3 tests/browser_check.py
+```
