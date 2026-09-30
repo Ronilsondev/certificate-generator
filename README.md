@@ -1,115 +1,115 @@
-# Certificate Generator
+# Gerador de Certificados
 
-Create personalized certificates from CSV or TXT. Export PNG, PDF, or a ZIP of the whole batch. Your files stay on your device.
+Crie certificados personalizados a partir de arquivos CSV ou TXT. Exporte em PNG, PDF ou baixe um ZIP com todos os certificados. Seus arquivos permanecem no seu dispositivo.
 
-[Open the app](https://avikhagol.github.io/certificate-generator/) · [Watch the demo](https://www.youtube.com/watch?v=e_CAPwU1Hbw)
+[Abrir o aplicativo original](https://avikhagol.github.io/certificate-generator/) · [Assistir à demonstração](https://www.youtube.com/watch?v=e_CAPwU1Hbw)
 
-## Quick start
+## Primeiros passos
 
-1. **Data:** load a CSV or TXT file.
-2. **Canvas:** choose a background or start with a blank template.
-3. **Layers:** add text, pictures, or shapes. Use placeholders such as `{{name}}`.
-4. **Preview:** check a few records using the left/right record buttons.
-5. **Download:** choose PNG, PDF, or **Download all (.zip)**.
+1. **Dados:** importe um arquivo CSV ou TXT.
+2. **Área de edição:** escolha um fundo ou comece com um modelo em branco.
+3. **Camadas:** adicione textos, imagens ou formas. Use variáveis como `{{name}}`.
+4. **Prévia do registro:** confira alguns registros usando os botões de registro anterior e próximo registro.
+5. **Exportação:** escolha **Baixar PNG**, **Baixar PDF** ou **Baixar todos (.zip)**.
 
-Use **Hide Data** and **Hide Layers** for more canvas space. The same buttons bring them back.
+Use **Ocultar dados** e **Ocultar camadas** para ampliar o espaço de edição. Os mesmos botões permitem exibir os painéis novamente.
 
-## Select and edit
+## Selecionar e editar
 
-| Action | How |
+| Ação | Como fazer |
 | --- | --- |
-| Select one element | Click it on the canvas or in Layers |
-| Add/remove an element from selection | Shift-click |
-| Select an area | Drag a rectangle from empty canvas space |
-| Add an area to selection | Shift-drag from empty space |
-| Move the selection | Drag a selected element, or use arrow keys |
-| Move faster | Shift + arrow keys moves 10 px |
-| Copy / paste / duplicate | Ctrl C / Ctrl V / Ctrl D |
-| Delete selected elements | Delete or Backspace |
-| Clear selection | Escape |
+| Selecionar um elemento | Clique nele na área de edição ou no painel Camadas |
+| Adicionar ou remover um elemento da seleção | Shift + clique |
+| Selecionar uma área | Arraste um retângulo a partir de um espaço vazio da área de edição |
+| Adicionar uma área à seleção | Segure Shift e arraste a partir de um espaço vazio |
+| Mover a seleção | Arraste um elemento selecionado ou use as setas do teclado |
+| Mover mais rápido | Shift + setas move a seleção em passos de 10 px |
+| Copiar / colar / duplicar | Ctrl C / Ctrl V / Ctrl D |
+| Excluir os elementos selecionados | Delete ou Backspace |
+| Limpar a seleção | Escape |
 
-A selection rectangle includes elements it touches. Copies keep their relative positions and stacking order.
+O retângulo de seleção inclui os elementos que ele toca. As cópias preservam suas posições relativas e a ordem das camadas.
 
-**On Mac:** use Command instead of Ctrl. Keyboard shortcuts leave typing in form fields alone.
+**No Mac:** use Command no lugar de Ctrl. Ao digitar em campos de formulário, os atalhos nativos de edição de texto são preservados.
 
-### Size, rotation, and stacking
+### Tamanho, rotação e ordem das camadas
 
-- **Resize:** drag the corner handle of a single selected element.
-- **Keep ratio:** hold Shift or Ctrl+Shift when resizing shapes or dynamic pictures.
-- **Square or circle:** hold Ctrl alone. Also works when editing Width or Height.
-- **Rotate:** drag the round handle. Shift snaps to 15°.
-- **Reorder:** use the ↑/↓ buttons, or Ctrl+↑/↓ for one position.
-- **Top/bottom:** Ctrl+Shift+↑/↓. The first layer in the list is on top.
+- **Redimensionar:** arraste a alça do canto de um único elemento selecionado.
+- **Manter a proporção:** segure Shift ou Ctrl + Shift ao redimensionar formas ou imagens dinâmicas.
+- **Criar um quadrado ou círculo:** segure apenas Ctrl. Também funciona ao editar Largura ou Altura.
+- **Girar:** arraste a alça circular. Segure Shift para ajustar em passos de 15°.
+- **Reordenar:** use os botões ↑/↓ ou Ctrl + ↑/↓ para mover uma posição.
+- **Mover para frente ou para o fundo:** Ctrl + Shift + ↑/↓. A primeira camada da lista fica na frente.
 
-Ordinary picture layers always keep their aspect ratio. To edit an element's properties, select it on its own.
+As camadas de imagens comuns sempre mantêm sua proporção. Para editar as propriedades de um elemento, selecione apenas ele.
 
 ### Zoom
 
-Ctrl + scroll zooms around the pointer. **Fit** or Ctrl 0 shows the whole canvas. When zoomed in, scroll or middle-button drag to pan.
+Ctrl + rolagem ajusta o zoom ao redor do ponteiro. **Ajustar** ou Ctrl 0 exibe toda a área de edição. Quando a imagem estiver ampliada, use a rolagem ou arraste com o botão do meio do mouse para navegar.
 
-## Prepare your data
+## Preparar os dados
 
-CSV headers become placeholders:
+Os cabeçalhos do CSV viram variáveis:
 
 ```csv
 name,course,date
-Alex Morgan,Discovery Camp,19 September 2026
-Sam Rivera,Discovery Camp,19 September 2026
+Ana Silva,Formação em tecnologia,19 de setembro de 2026
+João Santos,Formação em tecnologia,19 de setembro de 2026
 ```
 
-Use `{{name}}`, `{{course}}`, or `{{date}}` in a text layer. Any column name works.
+Use `{{name}}`, `{{course}}` ou `{{date}}` em uma camada de texto. Qualquer nome de coluna funciona, incluindo cabeçalhos em português. O nome da variável deve corresponder ao cabeçalho do arquivo.
 
-For names only, use a TXT file with **one name per line**.
+Para uma lista somente de nomes, use um arquivo TXT com **um nome por linha**. Os nomes ficam disponíveis na variável `{{name}}`.
 
-## Pictures and fonts
+## Imagens e fontes
 
-- **Background:** PNG, JPEG, or WebP. The canvas takes the image's dimensions.
-- **Picture layers:** logos, signatures, portraits, and seals. Crop or replace them independently.
-- **Custom fonts:** choose **+ Custom** beside Font. Supports TTF, OTF, WOFF, and WOFF2.
-- **Shapes:** rectangles, ellipses, triangles, diamonds, polygons, stars, and lines.
+- **Fundo:** PNG, JPEG ou WebP. A área de edição assume as dimensões da imagem.
+- **Camadas de imagem:** logotipos, assinaturas, retratos e selos. Recorte ou substitua cada imagem de forma independente.
+- **Fontes personalizadas:** escolha **+ Personalizada** ao lado de Fonte. São aceitos arquivos TTF, OTF, WOFF e WOFF2.
+- **Formas:** retângulos, elipses, triângulos, losangos, polígonos, estrelas e linhas.
 
-### A different picture for each record
+### Uma imagem diferente para cada registro
 
-1. Add an image filename column to the CSV, such as `photo`.
-2. Open **Dynamic pictures** in Data and link the image folder.
-3. Add a **+ Dynamic** layer and choose that column.
-4. Check the **Match report** for missing images.
+1. Adicione ao CSV uma coluna com o nome do arquivo de imagem, como `foto`.
+2. Abra **Imagens dinâmicas** no painel Dados e vincule a pasta de imagens.
+3. Adicione uma camada com **+ Dinâmica** e escolha essa coluna.
+4. Consulte o **Relatório de correspondências** para identificar imagens ausentes.
 
-Use **Cover** to fill the frame, **Contain** to show the whole image, or **Fill** to stretch it. Link more folders or refresh as needed.
+Use **Cobrir** para preencher a moldura, **Conter** para mostrar a imagem inteira ou **Preencher** para esticá-la. Vincule outras pastas ou atualize as imagens conforme necessário.
 
-**After reopening a project, relink these folders.** Dynamic image files are not embedded in the project.
+**Ao reabrir um projeto, vincule essas pastas novamente.** Os arquivos de imagens dinâmicas não são incorporados ao projeto.
 
-## Save your work
+## Salvar seu trabalho
 
-**Save project** downloads a `.certproj.json` file. **Load project** restores the design, data, pictures, fonts, and layer order.
+**Salvar projeto** baixa um arquivo `.certproj.json`. **Abrir projeto** restaura o desenho, os dados, as imagens, as fontes e a ordem das camadas.
 
-The browser also autosaves when storage is available and offers to restore your work on your next visit. Keep a downloaded project as your backup.
+O navegador também salva automaticamente quando há armazenamento disponível e oferece a recuperação do trabalho na próxima visita. Mantenha um projeto baixado como cópia de segurança.
 
-## Export
+## Exportar
 
-| Quality | Scale | Use |
+| Qualidade | Escala | Uso |
 | --- | --- | --- |
-| Normal | 1× | Quick previews |
-| High | 2× | General use |
-| XHigh | 3× | Sharper output, larger files |
+| Normal | 1× | Prévias rápidas |
+| Alta | 2× | Uso geral |
+| Muito alta | 3× | Maior nitidez e arquivos maiores |
 
-The quality setting applies to PNG, PDF, and ZIP exports. For large batches, split the data into smaller files if memory runs low.
+A qualidade escolhida se aplica às exportações em PNG, PDF e ZIP. Para lotes grandes, divida os dados em arquivos menores se houver pouca memória disponível.
 
-## Run locally
+## Executar localmente
 
-No install or build step. Open `dist/index.html`, or serve the folder:
+Não é necessário instalar dependências nem compilar o projeto. Abra `dist/index.html` ou sirva a pasta com um servidor local:
 
 ```bash
 python3 -m http.server 4173 --directory dist
 ```
 
-Then visit `http://localhost:4173`.
+Depois, acesse `http://localhost:4173`.
 
-For GitHub Pages, choose **Settings → Pages → GitHub Actions**. The included workflow publishes `dist/` when `main` is pushed.
+Para usar o GitHub Pages, abra as configurações do repositório (**Settings → Pages**) e escolha **GitHub Actions** como origem da publicação. O fluxo de trabalho incluído publica a pasta `dist/` quando alterações são enviadas para a branch `main`.
 
-## License
+## Licença
 
-[MIT](LICENSE) · [Source on GitHub](https://github.com/avikhagol/certificate-generator)
+[MIT](LICENSE) · [Código-fonte original no GitHub](https://github.com/avikhagol/certificate-generator)
 
 ## Interface em português e edição segura
 
